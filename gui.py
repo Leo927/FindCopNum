@@ -1,7 +1,7 @@
 import tkinter as tk
 import logging
-from TreeBuilder import TreeBuilder
-from TreeDrawer import TreeDrawer
+from TreeBuilder import Builder
+from TreeDrawer import Drawer
 
 class myGUI(tk.Frame):
 
@@ -27,7 +27,7 @@ class myGUI(tk.Frame):
         input1 = tk.Entry(self.root, bg='white')
 
         button1 = tk.Button(text='Generate')
-        button1.bind("<ButtonPress-1>", lambda data: TreeDrawer.generateAndDraw(input1.get())) 
+        button1.bind("<ButtonPress-1>", lambda data: Drawer.generateAndDraw(input1.get())) 
     
     
         tex = tk.Text(master=self.root)

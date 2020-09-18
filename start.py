@@ -3,7 +3,7 @@ import tkinter as tk
 import threading
 import logging
 import time
-from TreeBuilder import TreeBuilder
+from TreeBuilder import Builder
 
 def worker():
     # Skeleton worker function, runs in separate thread (see below)   
@@ -17,7 +17,7 @@ def main():
     root = tk.Tk()
     if __name__ == '__main__':
         myGUI(root)
-
+    
 
 
 main()

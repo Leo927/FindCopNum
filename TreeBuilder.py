@@ -64,9 +64,13 @@ class Builder(object):
                     toVisit.put(child)
                 currentNumVertices+=numChild    
         
+        #convert to json and
         graphJson = json_graph.adjacency_data(graph)
         graphText = json.dumps(graphJson, indent=4)
+        
+        #log the json. it is hooked up to the gui textbox
         logging.info(graphText)
+        
         print(graphText)
         return graph
 

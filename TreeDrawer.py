@@ -10,8 +10,14 @@ class Drawer(object):
     @classmethod
     def drawGraph(self, graph:nx.classes.graph.Graph, savePath:str=None, show:bool=True):	
         plt.figure(figsize=(max(10,len(graph)/5),max(5,len(graph)/10)))
-        nx.nx_agraph.write_dot(graph,'test.dot')
+        
+        
+        
+        
+        #use pygraphviz to get layout
         pos = graphviz_layout(graph, prog='dot')
+        
+        #using the         
         nx.draw(graph, pos, with_labels=True, arrows=False)
         #nx.draw(graph, with_labels=True)
         

@@ -37,7 +37,9 @@ class myGUI(tk.Frame):
         canvas1.create_window(512, 200, window=button1)
         canvas1.create_window(512, 120, window=label1)
         canvas1.create_window(512, 150, window=input1)
-
+        
+        #all of the following are to hook up logging with the textbox. 
+        
         # Create textLogger
         text_handler = TextHandler(tex)
 

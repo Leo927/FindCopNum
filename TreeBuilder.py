@@ -4,11 +4,13 @@ import networkx as nx
 import logging
 from networkx.readwrite import json_graph
 import json
+import constant
     ###########################
 class Builder(object):
     sparesRatio :float = 0.2
     childLimit :int = 10
     minChild :int =3
+    
     def __init__(self,_sparesRatio=None, _childLimit=None,_minChild=None):
         if _sparesRatio!=None:
             self.sparesRatio = _spares_ratio
@@ -22,16 +24,13 @@ class Builder(object):
     def getRandom(self, numVertices:int):
         if numVertices <= 0:
             return nx.Graph()
-
         
-
         numVertices-=1
-
         #calculate maxChild
         maxChild = min(int(numVertices * self.sparesRatio),self.childLimit)
         if maxChild < self.minChild:
             maxChild = self.minChild
-
+            
         #put the root node onto the graph
         graph = nx.DiGraph()
         graph.add_node(0)
@@ -41,7 +40,7 @@ class Builder(object):
         #create a queue and enqueue root node
         toVisit = queue.SimpleQueue()
         toVisit.put(0)
-    
+        
         while toVisit.empty() == False and currentNumVertices <= numVertices:
             #get one node from the queue
             node = toVisit.get()
@@ -68,19 +67,29 @@ class Builder(object):
         graphJson = json_graph.adjacency_data(graph)
         graphText = json.dumps(graphJson, indent=4)
         
+        #write to file
+        file = open(constant.treeFilePath, "w")
+        file.write(graphText)
+        file.close()
+        
+        
         #log the json. it is hooked up to the gui textbox
         logging.info(graphText)
         
         print(graphText)
         return graph
-
+    
     @classmethod
-    def fromString(input:str):
-        pass
+    def fromFile(self,path, root):
+        file = open(path, "r")
+        graphJson = json.loads(file.read())
+        graphJson['directed'] = False
+        graph = json_graph.adjacency_graph(graphJson)
+        tree = nx.bfs_tree(graph,root)
+        return tree
+    
 
 def subTree(graph:nx.classes.graph.Graph,root:int):
     
     pass
 
-
-Builder.getRandom(20)

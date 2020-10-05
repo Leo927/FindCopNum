@@ -8,17 +8,17 @@ class Drawer(object):
         return super().__init__()
 
     @classmethod
-    def drawGraph(self, graph:nx.classes.graph.Graph, savePath:str=None, show:bool=True):	
+    def drawGraph(self, graph:nx.classes.graph.Graph, savePath='tempTree', show:bool=True):	
+        #adjust the figure size based on the number of nodes
         plt.figure(figsize=(max(10,len(graph)/5),max(5,len(graph)/10)))
-        
-        
-        
         
         #use pygraphviz to get layout
         pos = graphviz_layout(graph, prog='dot')
         
-        #using the         
+        #using the pygraphviz layout to get a tree like figure
         nx.draw(graph, pos, with_labels=True, arrows=False)
+        
+        #use defult layout, will give random layout
         #nx.draw(graph, with_labels=True)
         
         if savePath!=None:

@@ -5,16 +5,15 @@ Created on Sun Sep 13 17:53:45 2020
 @author: Songhao Li
 """
 
-from TreeDrawer import Drawer
-from TreeBuilder import Builder
+
 import networkx as nx
 import matplotlib.pyplot as plt
 
+from TreeDrawer import Drawer
+from TreeBuilder import Builder
+import constant
 
-tree = Builder.getRandom(20)
-Drawer.drawGraph(tree)
-subTree = nx.dfs_tree(tree,5)
-Drawer.drawGraph(subTree)
+
 
 class CopManager(object):
     

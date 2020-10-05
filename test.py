@@ -6,5 +6,5 @@ import networkx as nx
 
 #tree = nx.random_tree(20)
 
-tree = TreeBuilder.Builder.fromFile(constant.treeFilePath, 0)
+tree = TreeBuilder.Builder.getRandom(300)
 TreeDrawer.Drawer.drawGraph(tree)

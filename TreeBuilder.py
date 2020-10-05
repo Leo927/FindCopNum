@@ -25,43 +25,11 @@ class Builder(object):
         if numVertices <= 0:
             return nx.Graph()
         
-        numVertices-=1
-        #calculate maxChild
-        maxChild = min(int(numVertices * self.sparesRatio),self.childLimit)
-        if maxChild < self.minChild:
-            maxChild = self.minChild
-            
-        #put the root node onto the graph
-        graph = nx.DiGraph()
-        graph.add_node(0)
         
-        currentNumVertices = 1
-
-        #create a queue and enqueue root node
-        toVisit = queue.SimpleQueue()
-        toVisit.put(0)
         
-        while toVisit.empty() == False and currentNumVertices <= numVertices:
-            #get one node from the queue
-            node = toVisit.get()
-            #calculate number of child for this node
-            numChild = int(min(random.random() * maxChild,numVertices - currentNumVertices))
-
-            if numChild == 0:
-                children = []
-
-                #if the queue is drained and there isn't enough vertices yet
-                if toVisit.empty() and currentNumVertices <= numVertices:
-                    #add one vertex to the graph
-                    graph.add_edge(node,currentNumVertices)
-                    toVisit.put(currentNumVertices)
-                    currentNumVertices += 1
-            else:
-                children = list(range(currentNumVertices, currentNumVertices + numChild))
-                for child in children:
-                    graph.add_edge(node,child)
-                    toVisit.put(child)
-                currentNumVertices+=numChild    
+        
+        graph=nx.random_tree(int(numVertices))
+        graph = nx.bfs_tree(graph,0)
         
         #convert to json and
         graphJson = json_graph.adjacency_data(graph)

@@ -1,7 +1,7 @@
 import tkinter as tk
 import logging
-from TreeBuilder import Builder
-from TreeDrawer import Drawer
+import TreeBuilder
+import TreeDrawer
 
 class myGUI(tk.Frame):
 

@@ -23,10 +23,7 @@ class Builder(object):
     @classmethod
     def getRandom(self, numVertices:int):
         if numVertices <= 0:
-            return nx.Graph()
-        
-        
-        
+            return nx.Graph()    
         
         graph=nx.random_tree(int(numVertices))
         graph = nx.bfs_tree(graph,0)

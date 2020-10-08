@@ -5,8 +5,10 @@ import logging
 from networkx.readwrite import json_graph
 import json
 import constant
+from collections import namedtuple
     ###########################
 
+rooted_tree = namedtuple('rooted_tree','tree root')
 
 
 def getRandom( numVertices:int):
@@ -30,18 +32,13 @@ def getRandom( numVertices:int):
     logging.info(graphText)
     
     print(graphText)
-    return graph
+    return rooted_tree(graph,0)
 
 def fromFile(path, root):
     file = open(path, "r")
     graphJson = json.loads(file.read())
     graphJson['directed'] = False
     graph = json_graph.adjacency_graph(graphJson)
-    #tree = nx.bfs_tree(graph,root)
-    return graph
+    return rooted_tree(graph,root)
     
-
-def subTree(graph:nx.classes.graph.Graph,root:int):
-    
-    pass
 

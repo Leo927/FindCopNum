@@ -7,11 +7,10 @@ from networkx.drawing.nx_agraph import graphviz_layout
 def drawGraph(graph:nx.classes.graph.Graph, 
               savePath='tempTree', 
               show:bool=True, 
-              root=None):	
-    #change root if given
+              root=None):   
+        #change root if given
     if root!= None:
         graph = nx.bfs_tree(graph,root)
-    
     #adjust the figure size based on the number of nodes
     plt.figure(figsize=(max(10,len(graph)/5),max(5,len(graph)/10)))
     
@@ -30,6 +29,9 @@ def drawGraph(graph:nx.classes.graph.Graph,
         #mng = plt.get_current_fig_manager()
         #mng.window.state('zoomed')
         plt.show()
+        
+def drawRootedTree(rooted_tree):
+    drawGraph(rooted_tree.tree,root=rooted_tree.root)
 
 
 

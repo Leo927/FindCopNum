@@ -37,7 +37,7 @@ def isKWeaklyBranching(tree, node, k):
     for forest in forests:
         if sum(isKPreBranching(component.tree, component.root, k) == True for component in forest) == 2:
             numForestMeetCondition += 1
-    if numForestMeetCondition =1:
+    if numForestMeetCondition == 1:
         return True
     return False
 

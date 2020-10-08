@@ -32,10 +32,13 @@ def isKPreBranching(tree, node, k):
 def isKWeaklyBranching(tree, node, k):    
     #TODO - test
     forests=[subForest(tree, node, 0),subForest(tree, node, 1),subForest(tree, node, 2)]
-    #TODO - check if this is exactly one or at least one   
+    #It is exactly one 
+    numForestMeetCondition = 0
     for forest in forests:
         if sum(isKPreBranching(component.tree, component.root, k) == True for component in forest) == 2:
-            return True
+            numForestMeetCondition += 1
+    if numForestMeetCondition =1:
+        return True
     return False
 
 def isKBranching(tree, node, k):

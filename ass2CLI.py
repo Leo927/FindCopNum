@@ -17,12 +17,12 @@ while command != 'q':
         print('Please enter the number of vertices.\n')
         numVertices = int(input())
         tree = TreeBuilder.getRandom(numVertices)
-        TreeDrawer.drawGraph(tree, root=0)
+        TreeDrawer.drawGraph(tree.tree, root=0)
     if command == 'r':
         print('Please enter the root\n')
         root = int(input())
         tree = TreeBuilder.fromFile(constant.treeFilePath, root)
-        TreeDrawer.drawGraph(tree, root=root)
+        TreeDrawer.drawGraph(tree.tree, root=root)
     if command == 'pr':
-        print(CopManager.reverseList(tree,root))                
+        print(CopManager.reverseList(tree.tree,root))                
 

@@ -18,12 +18,9 @@ def drawGraph(graph:nx.classes.graph.Graph,
     #use pygraphviz to get layout
     pos = graphviz_layout(graph, prog='dot')
     #using the pygraphviz layout to get a tree like figure
-    nx.draw(graph, pos, with_labels=True, arrows=False)
-    
+    nx.draw(graph, pos, with_labels=True, arrows=False)    
     
     drawNodeAttr(graph, pos, nodeAttr)
-    
-    
     
     if savePath!=None:
         plt.savefig(savePath) # save as png

@@ -10,7 +10,6 @@ from collections import namedtuple
 
 rooted_tree = namedtuple('rooted_tree','tree root')
 
-
 def getRandom( numVertices:int):
     if numVertices <= 0:
         return nx.Graph()    
@@ -18,6 +17,21 @@ def getRandom( numVertices:int):
     graph=nx.random_tree(int(numVertices))
     #graph = nx.bfs_tree(graph,0)
     
+    save(graph)    
+    
+    #log the json. it is hooked up to the gui textbox
+    
+
+    return rooted_tree(graph,0)
+
+def load(root, path=constant.treeFilePath):
+    file = open(path, "r")
+    graphJson = json.loads(file.read())
+    graphJson['directed'] = False
+    graph = json_graph.adjacency_graph(graphJson)
+    return rooted_tree(graph,root)
+
+def save(graph):
     #convert to json and
     graphJson = json_graph.adjacency_data(graph)
     graphText = json.dumps(graphJson, indent=4)
@@ -27,18 +41,20 @@ def getRandom( numVertices:int):
     file.write(graphText)
     file.close()
     
-    
-    #log the json. it is hooked up to the gui textbox
     logging.info(graphText)
     
-    print(graphText)
-    return rooted_tree(graph,0)
+def addRandWeightToNodes(rooted_tree):
+    lowerBound = 1
+    upperBound = len(rooted_tree.tree.nodes())/10
+    attribute = {}
+    for node in rooted_tree.tree.nodes():
+        attribute[node] = random.randint(lowerBound, upperBound)
+    nx.set_node_attributes(rooted_tree.tree, attribute, "weight")
+    save(rooted_tree.tree)
 
-def fromFile(path, root):
-    file = open(path, "r")
-    graphJson = json.loads(file.read())
-    graphJson['directed'] = False
-    graph = json_graph.adjacency_graph(graphJson)
-    return rooted_tree(graph,root)
+def addLongerPathWeightToNodes(rooted_tree):
+    #TODO - Implement
+    lowerBound = 1
+    upperBound = len(rooted_tree.tree.nodes())/10
     
 

@@ -1,8 +1,8 @@
-import TreeBuilder
-import TreeDrawer
+import treebuilder
+import treedrawer
 import constant
 import networkx as nx
-import CopManager
+import copmanager
 
 command = ''
 
@@ -16,13 +16,13 @@ while command != 'q':
     if command == 'g':
         print('Please enter the number of vertices.\n')
         numVertices = int(input())
-        tree = TreeBuilder.getRandom(numVertices)
-        TreeDrawer.drawGraph(tree.tree, root=0)
+        tree = treebuilder.getRandom(numVertices)
+        treedrawer.drawGraph(tree.tree, root=0)
     if command == 'r':
         print('Please enter the root\n')
         root = int(input())
-        tree = TreeBuilder.fromFile(constant.treeFilePath, root)
-        TreeDrawer.drawGraph(tree.tree, root=root)
+        tree = treebuilder.fromFile(constant.treeFilePath, root)
+        treedrawer.drawGraph(tree.tree, root=root)
     if command == 'pr':
-        print(CopManager.reverseList(tree.tree,root))                
+        print(copmanager.reverseList(tree.tree,root))                
 

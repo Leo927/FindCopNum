@@ -1,26 +1,27 @@
-import treebuilder
+import rootedtree
 import networkx as nx
 import matplotlib.pyplot as plt
 from networkx.drawing.nx_agraph import graphviz_layout
 
 
-def drawGraph(graph:nx.classes.graph.Graph, 
+def __drawGraph(graph:nx.classes.graph.Graph, 
               savePath='tempTree', 
               show:bool=True, 
               root=None,
               nodeAttr=None):   
         #change root if given
     if root!= None:
-        graph = nx.bfs_tree(graph,root)
+        print(graph)
+        digraph = nx.bfs_tree(graph,root)
     #adjust the figure size based on the number of nodes
     plt.figure(figsize=(max(10,len(graph)/5),max(5,len(graph)/10)))
     
     #use pygraphviz to get layout
-    pos = graphviz_layout(graph, prog='dot')
+    pos = graphviz_layout(digraph, prog='dot')
     #using the pygraphviz layout to get a tree like figure
     nx.draw(graph, pos, with_labels=True, arrows=False)    
     
-    drawNodeAttr(graph, pos, nodeAttr)
+    __drawNodeAttr(graph, pos, nodeAttr)
     
     if savePath!=None:
         plt.savefig(savePath) # save as png
@@ -29,15 +30,20 @@ def drawGraph(graph:nx.classes.graph.Graph,
         #mng.window.state('zoomed')
         plt.show()
         
-def drawRootedTree(rooted_tree, nodeAttr=None):
-    drawGraph(rooted_tree.tree,root=rooted_tree.root, nodeAttr=nodeAttr)
+        
+def drawRootedTree(rooted_tree):
+    __drawGraph(rooted_tree.tree,root=rooted_tree.root, nodeAttr=rooted_tree.attr)
     
-def drawNodeAttr(G, pos, attr):
-    labelPos = offsetPos(pos, 0, -20);
+    
+def __drawNodeAttr(G, pos, attr):
+    if attr == None:
+        return
+    labelPos = __offsetPos(pos, -10, 5);
     node_labels = nx.get_node_attributes(G,attr)
     nx.draw_networkx_labels(G, labelPos, labels = node_labels)
     
-def offsetPos(pos, dX, dY):
+    
+def __offsetPos(pos, dX, dY):
     newPos = {}
     for key,value in pos.items():
         newPos[key] = (value[0]+dX, value[1]+dY)

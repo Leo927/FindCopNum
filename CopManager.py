@@ -81,7 +81,10 @@ def findConnectedNodes(rooted_tree, node, data=False):
 def getWeight(rooted_tree, node):
     return rooted_tree.tree.nodes(True)[node]['weight']
 
-def findLongestEqualWeightPath(rooted_tree, parent, node):
+def findLongestEqualWeightPath(rooted_tree, node):
+    return __findLongestEqualWeightPath(rooted_tree, None, node)
+
+def __findLongestEqualWeightPath(rooted_tree, parent, node):
     connectedNodes = findConnectedNodes(rooted_tree, node)
     
     longestPath = []    
@@ -89,7 +92,7 @@ def findLongestEqualWeightPath(rooted_tree, parent, node):
         if cNode == parent:
             continue
         if getWeight(rooted_tree, cNode) == getWeight(rooted_tree, node):
-            path = findLongestEqualWeightPath(rooted_tree, node, cNode)
+            path = __findLongestEqualWeightPath(rooted_tree, node, cNode)
             if len(path)>len(longestPath):
                 longestPath = path
     longestPath.append(node)

@@ -8,7 +8,7 @@ import constant
 from collections import namedtuple
     ###########################
 
-rooted_tree = namedtuple('rooted_tree','tree root')
+
 
 def getRandom( numVertices:int):
     if numVertices <= 0:
@@ -52,9 +52,6 @@ def addRandWeightToNodes(rooted_tree):
     nx.set_node_attributes(rooted_tree.tree, attribute, "weight")
     save(rooted_tree.tree)
 
-def addLongerPathWeightToNodes(rooted_tree):
-    #TODO - Implement
-    lowerBound = 1
-    upperBound = len(rooted_tree.tree.nodes())/10
+
     
 

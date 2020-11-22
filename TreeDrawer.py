@@ -4,14 +4,13 @@ import matplotlib.pyplot as plt
 from networkx.drawing.nx_agraph import graphviz_layout
 
 
-def __drawGraph(graph:nx.classes.graph.Graph, 
+def drawGraph(graph:nx.classes.graph.Graph, 
               savePath='tempTree', 
               show:bool=True, 
               root=None,
               nodeAttr=None):   
         #change root if given
     if root!= None:
-        print(graph)
         digraph = nx.bfs_tree(graph,root)
     #adjust the figure size based on the number of nodes
     plt.figure(figsize=(max(10,len(graph)/5),max(5,len(graph)/10)))
@@ -32,7 +31,7 @@ def __drawGraph(graph:nx.classes.graph.Graph,
         
         
 def drawRootedTree(rooted_tree):
-    __drawGraph(rooted_tree.tree,root=rooted_tree.root, nodeAttr=rooted_tree.attr)
+    drawGraph(rooted_tree.tree,root=rooted_tree.root, nodeAttr=rooted_tree.attr)
     
     
 def __drawNodeAttr(G, pos, attr):

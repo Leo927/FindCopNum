@@ -27,10 +27,8 @@ class RootedTree:
     @classmethod
     def load(cls, root, path=constant.treeFilePath):
         '''Return a tree with tree in a file and a root as given'''
-        file = open(path, "r")
-        graphJson = json.loads(file.read())
-        graphJson['directed'] = False
-        graph = json_graph.adjacency_graph(graphJson)
+        root = str(root)
+        graph = nx.read_adjlist(constant.treeFilePath)
         return cls(graph, root)
         
     def directed(self):
@@ -39,14 +37,7 @@ class RootedTree:
     def save(self):
         '''Save the tree to a .txt file'''
         #convert to json and
-        graphJson = json_graph.adjacency_data(self.tree)
-        graphText = json.dumps(graphJson, indent=4)
-        
-        #write to file
-        file = open(constant.treeFilePath, "w")
-        file.write(graphText)
-        file.close()        
-        logging.info(graphText)    
+        nx.write_adjlist(self.directed(), constant.treeFilePath)  
     
     def add_rand_weight(self):
         '''Add randome weight between 1 and n/10 for every node in a RootedTree'''

@@ -2,3 +2,4 @@
 
 treeFilePath = "outTree.txt"
 
+branSym = '⊥'

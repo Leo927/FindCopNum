@@ -1,5 +1,6 @@
 import rootedtree
 import networkx as nx
+import copy
 import matplotlib.pyplot as plt
 from networkx.drawing.nx_agraph import graphviz_layout
 
@@ -10,6 +11,7 @@ def drawGraph(graph:nx.classes.graph.Graph,
               root=None,
               nodeAttr=None):   
         #change root if given
+    digraph = copy.deepcopy(graph)
     if root!= None:
         digraph = nx.bfs_tree(graph,root)
     #adjust the figure size based on the number of nodes

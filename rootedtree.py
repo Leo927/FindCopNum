@@ -13,7 +13,7 @@ class RootedTree:
     def __init__(self, tree, root):
         self.tree = tree
         self.root = root
-        self.attr = "weight"
+        self.attr = None
     
     @classmethod
     def random(cls, numVertices:int):
@@ -24,11 +24,15 @@ class RootedTree:
         graph=nx.random_tree(int(numVertices))
         return cls(graph, 0)
     
+    def __len__(self):
+        return len(self.tree)
+    
     @classmethod
     def load(cls, root, path=constant.treeFilePath):
         '''Return a tree with tree in a file and a root as given'''
-        root = str(root)
         graph = nx.read_adjlist(constant.treeFilePath)
+        mapping = dict((node, int(node)) for node in graph.nodes)
+        graph = nx.relabel_nodes(graph, mapping)
         return cls(graph, root)
         
     def directed(self):

@@ -33,6 +33,8 @@ class RootedTree:
         graph = json_graph.adjacency_graph(graphJson)
         return cls(graph, root)
         
+    def directed(self):
+        return nx.dfs_tree(self.tree, self.root)
         
     def save(self):
         '''Save the tree to a .txt file'''

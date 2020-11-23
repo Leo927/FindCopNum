@@ -38,7 +38,11 @@ class RootedTree:
     @property
     def directed(self):
         return nx.dfs_tree(self.tree, self.root)
-        
+    
+    def subTree(self, v1):
+        '''return a subtree rooted at v1'''
+        return RootedTree(nx.dfs_tree(self.tree, v1), v1)
+         
     def save(self):
         '''Save the tree to a .txt file'''
         #convert to json and

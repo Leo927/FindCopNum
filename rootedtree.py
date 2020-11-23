@@ -34,7 +34,8 @@ class RootedTree:
         mapping = dict((node, int(node)) for node in graph.nodes)
         graph = nx.relabel_nodes(graph, mapping)
         return cls(graph, root)
-        
+    
+    @property
     def directed(self):
         return nx.dfs_tree(self.tree, self.root)
         

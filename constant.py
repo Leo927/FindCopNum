@@ -2,4 +2,4 @@
 
 treeFilePath = "outTree.txt"
 
-branSym = '⊥'
+PERPEN_SYM = '⊥'

@@ -14,6 +14,28 @@ import treedrawer
 import constant
 import random
 
+class SV:
+    def __init__(self, s, v):
+        self.s = s 
+        self.v = v
+
+class Label:
+    
+    def __init__(self):
+        self.sv = []
+        self.ind = [None for i in range(5)]
+        
+    def __index__(self, i):
+        return self.sv[i-1]#compensate for 1 start
+    
+    def append(self, s = None, v=None):
+        self.sv.append(SV(s,v))
+    
+    @property
+    def value(self):
+        return self[1].s
+
+
 def reverseList(rt):
     reversedList = []
     __reverseListRecur(rt.directed(), rt.root, reversedList)
@@ -138,30 +160,79 @@ def kWeakCounter(rt, v, k):
             return 2       
     
         return 0
-    
 
-def compLabel(rt, v):
+
+
+
+def LTv(rt, v_origin):
     '''Definition 2.4 label of v in T[v]'''
-    
-    if len(rt) == 1:
-        return [(1, constant.branSym), 0, 0, 0, 0]
-    else:
-        i = 1
-        T1 = rt
-    s = list(len(rt) + 1)
-    s[i] = c1(T1)
-    
-    if isKBranching(T1, v, s[i]):
-        return [()]+[0,0,0,0]
-    #TODO - implement
     #TODO - test
+    if len(rt) == 1:
+        return [(1, constant.PERPEN_SYM), 0, 0, 0, 0]
+    
+    v = copy.deepcopy(v_origin)
+    T1 = copy.deepcopy(rt)
+    label = Label()
+    while(True):
+        i = 1        
+        label.append()
+        label[i].s = c1(T1)
+        #(a)
+        if (isKBranching(rt, v, label[i].s)):
+            label[i].v = v
+            label.ind = [0,0,0,0]
+            return label
+        
+        #(b)
+        si_branching_descendants = kBranchingDescendent(rt, v, label[i].s)
+        if (len(si_branching_descendants) > 0):
+            label[i].v = si_branching_descendants[0]
+            T1 = trimTreeFromNode(T1, label[i].v)
+            i += 1
+            continue
+        
+        #(c)
+        if (isKWeaklyBranching(T1, v, label[i].s)):
+            label[i].v = constant.PERPEN_SYM
+            #TODO - not sure the counter is based on T1 or T
+            label.ind = [1, kWeakCounter(T1, v, label[i].s), 0, 0]
+            return label
+        
+        #(d)
+        if (isKPreBranching(T1, v, label[i].s)):
+            label[i].v = constant.PERPEN_SYM
+            label.ind = [0,0,1,0]
+            return label
+            
+        #(e)
+        label[i].v = constant.PERPEN_SYM
+        label.ind = [0,0,0,kInitialCounter(T1, v, label[i].s)]
+        
 
+def kBranchingDescendent(rt, v, k):    
+    descendents = nx.bfs_successors(rt.directed, v)
+    return [node for node in descendents if isKBranching(rt, v, k)]
+
+def trimTreeFromNode(rt, v):
+    #TODO - test
+    tempTree = copy.deepcopy(rt)
+    nodesToRemove = nx.dfs_tree(rt.directed, v).nodes
+    tempTree.tree.remove_nodes_from(nodesToRemove)
+    return tempTree
+    
 def L(rt):
-    revNodes = reverseList(rt)
+    if len(rt) < 12:
+        raise Exception("The tree has less than 12 nodes")
+    #step 2
+    #added a None in front to offset position to start with 1
+    revNodes = [None] + reverseList(rt)
     
-    labels = dict((node, None) for node in revNodes)
+    labels = dict((node, None) for node in rt.tree.nodes)
     
-    
-
+    i = 1    
+    while(labels[revNodes[-1]] == None):
+        pass
+        
+    return labels[revNodes[-1]]
     
     

@@ -92,10 +92,10 @@ def subForest(rt, node, distance = 0):
     return [RootedTree(nx.bfs_tree(digraph,child),child) for child in children]
     
 
-#The minimum cop number to cover a tree
+
 def c1(rt):
-    #TODO - implement c1
-    return 1
+    '''find cop number of a rooted tree'''
+    return LTv(rt,rt.root).value
         
 def c1Star(forest):
     #TODO - test
@@ -104,9 +104,11 @@ def c1Star(forest):
         result = max(result, c1(rt))
     return result
 
-def neighbor(rt, node, distance = 1):
+def descendant(rt, node, distance = 1):
+    '''return descendant within distance(default = 1)
+    does not include node it self'''
     #TODO - test
-    return dict(nx.bfs_successors(rt.directed(),node,distance))[node]  
+    return dict(nx.bfs_successors(rt.directed,node,distance))[node]  
 
 def kPreBranInd(rt, v, k):
     #TODO - test
@@ -142,9 +144,9 @@ def kWeakCounter(rt, v, k):
     '''Definition 2.3 find k-weakly-counter'''
     #TODO - test
     if (kWeakBranInd(rt, v, k) == 1):
-        k_pre_branching_child = [child for child in neighbor(rt, v) 
+        k_pre_branching_child = [child for child in descendant(rt, v) 
                                  if isKPreBranching(rt, child, k)]
-        k_weakly_branching_child = [child for child in neighbor(rt, v) 
+        k_weakly_branching_child = [child for child in descendant(rt, v) 
                                     if isKWeaklyBranching(rt, v, k)]
         num_prebranching_child = len(k_pre_branching_child)
         num_weakly_bran_child = len(k_weakly_branching_child)
@@ -161,9 +163,50 @@ def kWeakCounter(rt, v, k):
     
         return 0
 
+def descOfType(rt, v, k, func):
+    '''return the list of children of v that meet a condition'''
+    nodes = descendant(rt, v) 
+    return [node for node in nodes if func(rt, v, k)]
 
+def numKPreBranChild(rt, v, k):
+    '''Definiton 2.6 return the number of descendants that are k-pre-branching vertex
+    #^k_pb(T^[u] - u)'''    
+    #TODO - test
+    return len(descOfType(rt, v, k, isKPreBranching))
+    
+def numKWeakBranChild(rt, v, k):
+    '''Definition 2.6 return the number of descendents 
+    #^k_wb(T^[u] - u)'''
+    #TODO - test
+    return len(descOfType(rt, v, k, isKWeaklyBranching))
+    
+def numKC1Child(rt, v, k):
+    '''Definiton 2.6
+    #_c^k(T^[u] - u) = |{j for c1(T^[vj]) =k for vj in u.children'''
+    #TODO - test
+    return len(descOfType(rt, v, k, lambda vj: c1(rt.subTree(vj)) == k))
 
+def maxInitialCounter(rt, v, k):
+    '''Definiton 2.6
+    h^k(T^[u] - u) = max{J^k(vj) for j in v.chidren'''
+    return max([kInitialCounter(rt, vj, k) for vj in descendant(rt, v)])
 
+def maxWeaklyCounter(rt, v, k):
+    '''Definiton 2.6
+    h^k_w(T^[u] -u)) = max{J^k_w(vj) for vj in v.children}'''
+    return max([kWeakCounter(rt, vj, k) for vj in descendant(rt, v)])
+
+def getCopNumber(tree, root = None):
+    if(len(tree) < 12):
+        raise Exception('number of vertices in tree must be at least 12');
+    if(root == None):
+        root = tree.nodes[random.randint(0, len(tree) - 1)]
+    rt = RootedTree(tree, root)
+    revNodes = reverseList(rt)
+    labels = [None for node in revNodes]
+    
+
+@DeprecationWarning
 def LTv(rt, v_origin):
     '''Definition 2.4 label of v in T[v]'''
     #TODO - test
@@ -220,19 +263,8 @@ def trimTreeFromNode(rt, v):
     tempTree.tree.remove_nodes_from(nodesToRemove)
     return tempTree
     
-def L(rt):
-    if len(rt) < 12:
-        raise Exception("The tree has less than 12 nodes")
-    #step 2
-    #added a None in front to offset position to start with 1
-    revNodes = [None] + reverseList(rt)
-    
-    labels = dict((node, None) for node in rt.tree.nodes)
-    
-    i = 1    
-    while(labels[revNodes[-1]] == None):
-        pass
-        
-    return labels[revNodes[-1]]
-    
+
+rt = RootedTree.load(1)
+treedrawer.drawRootedTree(rt)
+print(descendant(rt, 1))
     

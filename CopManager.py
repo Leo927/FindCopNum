@@ -5,7 +5,7 @@ Created on Sun Sep 13 17:53:45 2020
 @author: Songhao Li
 """
 
-
+import unittest
 import networkx as nx
 from rootedtree import RootedTree
 import matplotlib.pyplot as plt
@@ -18,22 +18,75 @@ class SV:
     def __init__(self, s, v):
         self.s = s 
         self.v = v
+        
+    def __str__(self):
+        return f'({self.s}, {self.v})'
 
+    def __repr__(self):
+        return str(self)
+    @property
+    def key(self):
+        return self.s
+    
+    @property
+    def attribute(self):
+        return self.v
+        
 class Label:
     
     def __init__(self):
         self.sv = []
         self.ind = [None for i in range(5)]
-        
+    
     def __index__(self, i):
         return self.sv[i-1]#compensate for 1 start
     
+    def __getitem__(self, i):
+        return self.__index__(i)
+    
+    @classmethod
+    def make(cls, s, v, *arg):
+        if len(arg) < 4 and len(arg) > 0:
+            raise Exception("incorrect number of ind")
+        tempLabel = Label()
+        tempLabel.append(s,v)
+        if len(arg) == 4:
+            tempLabel.ind = list(arg)
+        else:
+            tempLabel.ind = [0,0,0,0]
+        return tempLabel
+        
+    
     def append(self, s = None, v=None):
         self.sv.append(SV(s,v))
+        
+    @classmethod
+    def noChild(cls):
+        return cls.make(1, constant.PERPEN_SYM, 0, 0, 0, 0)
+    
+    def __str__(self):
+        return f'{self.sv + self.ind}'
+    
+    def __repr__(self):
+        return str(self)
     
     @property
     def value(self):
         return self[1].s
+    
+    def containPerpen(self):
+        return sum([sv.v == constant.PERPEN_SYM for sv in self.sv])
+    
+    def lastSix(self):
+        tempLabel = copy.deepcopy(self)
+        tempLabel.sv = [tempLabel.sv[-1]]
+        return tempLabel
+    
+    def deleteLast(self, n):
+        if n == 4:
+            return [sv for sv in self.sv]
+        return self.sv[0: int(-(n-2)/2 + 1)]
+        
 
 
 def reverseList(rt):
@@ -197,15 +250,159 @@ def maxWeaklyCounter(rt, v, k):
     return max([kWeakCounter(rt, vj, k) for vj in descendant(rt, v)])
 
 def getCopNumber(tree, root = None):
+    '''Algorithem 1
+    Compute the copnumber of a tree'''
     if(len(tree) < 12):
         raise Exception('number of vertices in tree must be at least 12');
     if(root == None):
         root = tree.nodes[random.randint(0, len(tree) - 1)]
     rt = RootedTree(tree, root)
     revNodes = reverseList(rt)
-    labels = [None for node in revNodes]
+    labels = dict((node, Label.noChild() if len(descendant(rt, node)) == 0 
+              else None) for node in revNodes)
     
+    while(labels[root] == None):
+        #get the first 
+        u = next(node for node in revNodes if labels[node] != None)
+        children = descendant(rt, u)
+        
+        #I⊥ be the subset of children whose label contains ⊥
+        I_perpen = []
+        
+        #Ib be the subset of children whose label does not contain ⊥
+        Ib = []
+        for child in children:
+            if labels[child] == None:
+                raise Exception("some children haven't get label")
+            if labels[child].containPerpen():
+                I_perpen.append(child)
+            else:
+                Ib.append(child)
+        
+        #construct T1[u]
+        T1 = trimTreeFromNode(rt, *Ib,*I_perpen)
+        # compute c1(T1)
+        LT1u = compute_label(T1, u, labels)[1]
+        k = LT1u.value
+        
+        #7
+        L = []
+        for node in children:
+            #TODO - not sure correctness
+            L.append( [l for l in 
+                       labels[node].deleteLast(6 if node in I_perpen else 4)
+                       if l.key >= k][0])
+        L.append( LT1u[1]) 
+        
+        #8
+        distinctItems, largestRepeatedKey = keyRepeated(L)
+        if(largestRepeatedKey >= 0):
+            labels[u] = LT1u
+            labels[u] = labels[u] + L[0, -1]
+            continue
+        #9
+        
 
+def keyRepeated(L):
+    '''return distinctItems, largest repeating key of L'''
+    largest = -1
+    status = {}
+    repeated = []
+    alreadySeen = {}
+    for item in L:
+        if(item.key in alreadySeen):
+            largest = max(largest, item.key)
+            repeated.append(item)
+        else:
+            alreadySeen[item] = None
+    return (alreadySeen.keys(), largest)
+        
+         
+def compute_label(rt, u, labels):
+    '''rt = T1'''
+    k = c1Star(subForest(rt, u)) 
+    
+    ##^k_wb
+    numKWb = numKWeakBranChild(rt, u, k)
+    ##^k_pb
+    numKPb = numKPreBranChild(rt, u, k)
+    ##^k_c
+    numKC = numKC1Child(rt, u, k)
+    #h^k_w
+    hkW = maxWeaklyCounter(rt, u, k)
+    #h^k
+    hk = maxInitialCounter(rt, u, k)
+    
+    
+    #1
+    if numKWb > 1:
+        return Label.make(k+1, constant.PERPEN_SYM)
+    #3
+    if numKWb == 1 and numKPb >= 1:
+        return Label.make(k+1, constant.PERPEN_SYM, 0, 0, 0, 0)
+    
+    #5
+    if (numKWb == 1 and 
+        numKPb == 0 and
+        numKC >=2):
+        #6
+        if hkW == 2:
+            return Label.make(k+1, constant.PERPEN_SYM, 0,0,0,0)
+        #8
+        if (hkW == 1 and 
+            hk >= 1):
+            return Label.make(k+1, constant.PERPEN_SYM, 0,0,0,0)
+        #10
+        if (hkW == 1 and 
+            hk ==0):
+            return Label.make(k, constant.PERPEN_SYM, 1, 2, 0, 0)
+        #12
+        if (hkW == 0 and 
+            hk == 2):
+            return Label.make(k + 1, constant.PERPEN_SYM, 0, 0, 0, 0)
+        #14
+        if (hkW == 0 and 
+            hk <= 1):
+            return Label.make(k + 1, constant.PERPEN_SYM, 1, 1, 0, 0)
+    #16
+    if numKWb == 1 and numKC == 1:
+        #17
+        if hkW ==2:
+            return Label.make(k, u)
+        #19
+        if hkW == 1:
+            return Label.make(k, constant.PERPEN_SYM, 1, 2, 0, 0)
+        #21
+        if hkW == 0:
+            return Label.make(k, constant.PERPEN_SYM, 1, 1, 0, 0)
+    #23
+    if numKWb ==0:
+        #24
+        if numKPb >= 3:
+            return Label.make(k+1, constant.PERPEN_SYM)
+        #26
+        if numKPb == 2:
+            return Label.make(k, constant.PERPEN_SYM, 1, 0, 0 ,0)
+        #28
+        if numKPb == 1:
+            return Label.make(k, constant.PERPEN_SYM, 0, 0, 1, 0)
+        #30
+        if numKPb ==0:
+            #31
+            if hk == 2:
+                return Label.make(k, constant.PERPEN_SYM, 0, 0, 1, 0)
+            #33
+            if hk == 1:
+                return Label.make(k, constant.PERPEN_SYM, 0,0,0,2)
+            #35
+            if hk == 0:
+                return Label.make(k, constant.PERPEN_SYM, 0,0,0,1)
+    raise Exception("nothing is returned from compute-label")
+    
+        
+        
+    
+    
 @DeprecationWarning
 def LTv(rt, v_origin):
     '''Definition 2.4 label of v in T[v]'''
@@ -256,15 +453,22 @@ def kBranchingDescendent(rt, v, k):
     descendents = nx.bfs_successors(rt.directed, v)
     return [node for node in descendents if isKBranching(rt, v, k)]
 
-def trimTreeFromNode(rt, v):
+def trimTreeFromNode(rt, *arg):
+    '''return a copy of the trimmed rooted tree'''
     #TODO - test
     tempTree = copy.deepcopy(rt)
-    nodesToRemove = nx.dfs_tree(rt.directed, v).nodes
-    tempTree.tree.remove_nodes_from(nodesToRemove)
+    for v in arg:
+        nodesToRemove = nx.dfs_tree(rt.directed, v).nodes
+        tempTree.tree.remove_nodes_from(nodesToRemove)
     return tempTree
     
 
-rt = RootedTree.load(1)
-treedrawer.drawRootedTree(rt)
-print(descendant(rt, 1))
+# rt = RootedTree.load(1)
+# treedrawer.drawRootedTree(rt)
+# print(descendant(rt, 1))
+label = Label.make(1,0,0,0,0,0)
+label.append(7,constant.PERPEN_SYM)
+label.append(9,constant.PERPEN_SYM)
+print(label)
+print(label.deleteLast(4))
     

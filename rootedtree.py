@@ -46,7 +46,7 @@ class RootedTree:
     def save(self):
         '''Save the tree to a .txt file'''
         #convert to json and
-        nx.write_adjlist(self.directed(), constant.treeFilePath)  
+        nx.write_adjlist(self.directed, constant.treeFilePath)  
     
     def add_rand_weight(self):
         '''Add randome weight between 1 and n/10 for every node in a RootedTree'''

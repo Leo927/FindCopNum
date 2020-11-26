@@ -13,7 +13,7 @@ import copy
 import treedrawer
 import constant
 import random
-from label import Label,SV
+from label import Label, SV
 
 
 def reverseList(rt):
@@ -313,12 +313,14 @@ def keyRepeated(L):
     for item in L:
         count[item.key] = count[item.key] + 1
     return ([key for key in count],
-            max([key for key in count if count[key] > 1 ]))
+            max([key for key in count if count[key] > 1]))
+
 
 def findX(L, K):
     X = Label()
-    X.ind = [0,0,0,0]
-    h = len(K) - 1 # -1 to compensate difference of 0 base and 1 base. now we are 0 based
+    X.ind = [0, 0, 0, 0]
+    # -1 to compensate difference of 0 base and 1 base. now we are 0 based
+    h = len(K) - 1
     for idx, k_i in enumerate(K):
         if idx == h:
             X.append(k_i, constant.PERPEN_SYM)
@@ -326,6 +328,7 @@ def findX(L, K):
             x_i = next(sv.attribute for sv in L if sv.key == k_i)
             X.append(k_i, x_i)
     return X
+
 
 def compute_label(rt, u, labels):
     '''rt = T1'''
@@ -428,6 +431,7 @@ def trimTreeFromNode(rt, *arg):
 
 
 if __name__ == "__main__":
-    labels = {1:Label.make(5, constant.PERPEN_SYM), 2:Label.make(6,constant.PERPEN_SYM), 3:Label.make(4,3), 4:Label.make(6,4), 5:Label.make(7, 5)}
+    labels = {1: Label.make(5, constant.PERPEN_SYM), 2: Label.make(
+        6, constant.PERPEN_SYM), 3: Label.make(4, 3), 4: Label.make(6, 4), 5: Label.make(7, 5)}
     L = [labels[4][1], labels[5][1], LT1u[1]]
-    distinct, largest = keyRepeated(L) 
+    distinct, largest = keyRepeated(L)

@@ -13,12 +13,29 @@ import copy
 import treedrawer
 import constant
 import random
+import logging
 from label import Label, SV
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+# create console handler and set level to debug
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+
+# create formatter
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# add formatter to ch
+ch.setFormatter(formatter)
+
+# add ch to logger
+logger.addHandler(ch)
 
 
 def reverseList(rt):
     reversedList = []
-    __reverseListRecur(rt.directed(), rt.root, reversedList)
+    __reverseListRecur(rt.directed, rt.root, reversedList)
     return reversedList
 
 
@@ -80,7 +97,7 @@ def subForest(rt, node, distance=0):
 def c1(rt):
     '''find cop number of a rooted tree'''
     #TODO - implement
-    pass
+    return getCopNumber(rt).value
 
 
 def c1Star(forest):
@@ -194,54 +211,76 @@ def maxInitialCounter(rt, v, k):
 def maxWeaklyCounter(rt, v, k):
     '''Definiton 2.6
     h^k_w(T^[u] -u)) = max{J^k_w(vj) for vj in v.children}'''
+    logger.debug(f'maxWeaklyCounter(rt={rt}, v={v}, k={k})')
+    logger.debug(descendant(rt, v))
     return max([kWeakCounter(rt, vj, k) for vj in descendant(rt, v)])
 
 
 def getCopNumber(tree, root=None):
     '''Algorithem 1
-    Compute the copnumber of a tree'''
-    if(len(tree) < 12):
-        raise Exception('number of vertices in tree must be at least 12')
+    Compute the copnumber of a tree
+    root is picked randomly if not given
+    return the label of the root'''
+    # if(len(tree) < 12):
+    #   raise ValueError(f'number of vertices in tree {tree} must be at least 12')
     # 1
+    logger.debug(f"getCopNumber(tree={tree.nodes}, root={root})")
     if(root == None):
         root = tree.nodes[random.randint(0, len(tree) - 1)]
+        logger.debug(f'root is picked to be {root}')
     rt = RootedTree(tree, root)
 
     # 2
     revNodes = reverseList(rt)
+    logger.debug(f'revNodes = {revNodes}')
     labels = dict((node, Label.noChild() if len(descendant(rt, node)) == 0
                    else None) for node in revNodes)
+    logger.debug(f'labels = {labels}')
 
     # 3
     while(labels[root] == None):
-        # get the first unlabeled node
-        u = nextUnlabled(revNodes, labels)
-        children = descendant(rt, u)
+        getNextLabel(rt, labels, revNodes)
+    return labels[root]
 
-        I_perpen, Ib = splitContainPerp(children, labels)
 
-        # construct T1[u]
-        T1 = trimTreeFromNode(rt, *Ib, *I_perpen)
-        # compute c1(T1)
-        LT1u = compute_label(T1, u, labels)[1]
-        k = LT1u.value
+def getNextLabel(rt, labels, revNodes):
+    # get the first unlabeled node
+    revNodes
+    u = nextUnlabled(revNodes, labels)
+    logger.debug(f'u = {u}')
+    children = descendant(rt, u)
+    logger.debug(f'children of u = {children}')
+    I_perpen, Ib = splitContainPerp(children, labels)
+    logger.debug(f'I_perpen={I_perpen}')
+    logger.debug(f'Ib = {Ib}')
+    # construct T1[u]
+    logger.debug('T1 is drawn')
+    T1 = trimTreeFromNode(rt, *Ib, *I_perpen)
+    treedrawer.drawRootedTree(T1, title="T1")
+    # compute c1(T1)
+    LT1u = compute_label(T1, u, labels)[1]
+    logger.debug(f'LT1u = {LT1u}')
+    # 7
+    L = getLeadingLabels(children, labels, I_perpen, LT1u)
+    logger.debug(f'L = {L}')
+    # 8, #9
+    distinctKey, largestRepeatedKey = keyRepeated(L)
+    logger.debug(f'distinctKeys = {distinctKey}')
+    logger.debug(f'k = {largestRepeatedKey}')
+    if(largestRepeatedKey == None):
+        labels[u] = copy.deepcopy(LT1u)
+        labels[u].sv = labels[u].sv + L[0:-1]
+        return labels[u]
 
-        # 7
-        L = getLeadingLabels(children, labels, I_perpen, LT1u)
+    # 10
+    K = decreasingWithMinimum(distinctKey, largestRepeatedKey)
 
-        # 8, #9
-        distinctKeyLabels, largestRepeatedKey = keyRepeated(L)
-        if(largestRepeatedKey >= 0):
-            labels[u] = LT1u
-            labels[u] = labels[u] + L[0:-1]
-            continue
-
-        # 10
-        K = decreasingWithMinimum(distinctKeyLabels, largestRepeatedKey)
-
-        # 11
-        h = findh(K)
-        K = updateK(K, h)
+    # 11
+    h = findh(K)
+    K = updateK(K, h)
+    X = findX(L, K)
+    labels[u] = X
+    return labels[u]
 
 
 def decreasingWithMinimum(items, minimum):
@@ -276,7 +315,8 @@ def getLeadingLabels(nodes: list, labels: dict, I_perpen: list, LT1u: Label):
     nodes: raw data type representing nodes
     labels: dict of node:Label pairs
     I_perpen: list of nodes that contains perpendicular sign
-    LT1u: Label of T1'''
+    LT1u: Label of T1
+    return [SV]'''
     k = LT1u.value
     L = []
     for node in nodes:
@@ -308,12 +348,14 @@ def splitContainPerp(nodes, labels):
 
 
 def keyRepeated(L):
-    '''return distinctKeyItems, largest repeating key of L'''
+    '''return distinctKeyItems, largest repeating key of L
+    largestRepeatedKey =None if no repeated key'''
     count = dict((item.key, 0) for item in L)
     for item in L:
         count[item.key] = count[item.key] + 1
     return ([key for key in count],
-            max([key for key in count if count[key] > 1]))
+            None if len([key for key in count if count[key] > 1]) == 0
+            else max([key for key in count if count[key] > 1]))
 
 
 def findX(L, K):
@@ -431,7 +473,7 @@ def trimTreeFromNode(rt, *arg):
 
 
 if __name__ == "__main__":
-    labels = {1: Label.make(5, constant.PERPEN_SYM), 2: Label.make(
-        6, constant.PERPEN_SYM), 3: Label.make(4, 3), 4: Label.make(6, 4), 5: Label.make(7, 5)}
-    L = [labels[4][1], labels[5][1], LT1u[1]]
-    distinct, largest = keyRepeated(L)
+
+    rt = RootedTree.load(0)
+    treedrawer.drawRootedTree(rt)
+    getCopNumber(rt.tree, rt.root)

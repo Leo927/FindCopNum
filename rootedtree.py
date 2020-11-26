@@ -14,6 +14,12 @@ class RootedTree:
         self.tree = tree
         self.root = root
         self.attr = None
+
+    def __str__(self):
+        return f'{self.root}: {self.tree.nodes}\n{self.tree.edges}'
+
+    def __repr__(self):
+        return str(self)
     
     @classmethod
     def random(cls, numVertices:int):

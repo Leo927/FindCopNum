@@ -16,6 +16,10 @@ import random
 import logging
 from label import Label, SV
 
+labels = dict()
+
+
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 # create console handler and set level to debug
@@ -239,18 +243,18 @@ def getCopNumber(tree, root=None):
 
     # 3
     while(labels[root] == None):
-        getNextLabel(rt, labels, revNodes)
+        getNextLabel(rt, revNodes)
     return labels[root]
 
 
-def getNextLabel(rt, labels, revNodes):
+def getNextLabel(rt, revNodes):
     # get the first unlabeled node
     revNodes
-    u = nextUnlabled(revNodes, labels)
+    u = nextUnlabled(revNodes)
     logger.debug(f'u = {u}')
     children = descendant(rt, u)
     logger.debug(f'children of u = {children}')
-    I_perpen, Ib = splitContainPerp(children, labels)
+    I_perpen, Ib = splitContainPerp(children)
     logger.debug(f'I_perpen={I_perpen}')
     logger.debug(f'Ib = {Ib}')
     # construct T1[u]
@@ -258,10 +262,10 @@ def getNextLabel(rt, labels, revNodes):
     T1 = trimTreeFromNode(rt, *Ib, *I_perpen)
     treedrawer.drawRootedTree(T1, title="T1")
     # compute c1(T1)
-    LT1u = compute_label(T1, u, labels)[1]
+    LT1u = compute_label(T1, u)[1]
     logger.debug(f'LT1u = {LT1u}')
     # 7
-    L = getLeadingLabels(children, labels, I_perpen, LT1u)
+    L = getLeadingLabels(children, I_perpen, LT1u)
     logger.debug(f'L = {L}')
     # 8, #9
     distinctKey, largestRepeatedKey = keyRepeated(L)
@@ -310,7 +314,7 @@ def updateK(K, h):
     return K
 
 
-def getLeadingLabels(nodes: list, labels: dict, I_perpen: list, LT1u: Label):
+def getLeadingLabels(nodes: list, I_perpen: list, LT1u: Label):
     '''Algorithem 1 #7
     nodes: raw data type representing nodes
     labels: dict of node:Label pairs
@@ -327,7 +331,7 @@ def getLeadingLabels(nodes: list, labels: dict, I_perpen: list, LT1u: Label):
     return L
 
 
-def splitContainPerp(nodes, labels):
+def splitContainPerp(nodes):
     '''seperate nodes into two sets.
     One set contains ⊥ in label.
     The other set doesn't.
@@ -339,7 +343,7 @@ def splitContainPerp(nodes, labels):
     Ib = []
     for child in nodes:
         if labels[child] == None:
-            raise Exception("some children haven't get label")
+            logger.critical("some children hasn't got label")
         if labels[child].containPerpen():
             I_perpen.append(child)
         else:
@@ -372,7 +376,7 @@ def findX(L, K):
     return X
 
 
-def compute_label(rt, u, labels):
+def compute_label(rt, u):
     '''rt = T1'''
     k = c1Star(subForest(rt, u))
 
@@ -453,7 +457,7 @@ def compute_label(rt, u, labels):
     raise Exception("nothing is returned from compute-label")
 
 
-def nextUnlabled(revNodes, labels):
+def nextUnlabled(revNodes):
     return next(node for node in revNodes if labels[node] == None)
 
 

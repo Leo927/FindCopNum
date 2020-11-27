@@ -25,27 +25,27 @@ class LabelTest(unittest.TestCase):
 
     def test_next_unlabled(self):
         nodes = [5, 4, 3, 2, 1, 0]
-        labels = {5: Label(), 4: Label(), 3: None, 2: None, 1: None, 0: None}
-        self.assertEqual(copmanager.nextUnlabled(nodes, labels), 3)
+        copmanager.labels = {5: Label(), 4: Label(), 3: None, 2: None, 1: None, 0: None}
+        self.assertEqual(copmanager.nextUnlabled(nodes), 3)
 
     def test_split_contain_perpen(self):
         Ib = [4, 2, 1]
         I_perpen = [0, 3]
-        labels = {4: Label.make(1, 0),
+        copmanager.labels = {4: Label.make(1, 0),
                   3: Label.make(1, constant.PERPEN_SYM),
                   2: Label.make(2, 0),
                   1: Label.make(2, 0),
                   0: Label.make(1, constant.PERPEN_SYM)}
         self.assertEqual(copmanager.splitContainPerp(
-            Ib+I_perpen, labels), (I_perpen, Ib))
+            Ib+I_perpen), (I_perpen, Ib))
 
     def test_get_leading(self):
         LT1u = Label.make(6, constant.PERPEN_SYM)
-        labels = {1: Label.make(5, constant.PERPEN_SYM), 2: Label.make(
+        copmanager.labels = labels = {1: Label.make(5, constant.PERPEN_SYM), 2: Label.make(
             6, constant.PERPEN_SYM), 3: Label.make(4, 3), 4: Label.make(6, 4), 5: Label.make(7, 5)}
         I_perpen = [1, 2]
         nodes = [1, 2, 3, 4, 5]
-        L = copmanager.getLeadingLabels(nodes, labels, I_perpen, LT1u)
+        L = copmanager.getLeadingLabels(nodes, I_perpen, LT1u)
         self.assertEqual(L, [labels[4][1], labels[5][1], LT1u[1]])
         distinct, kStar = copmanager.keyRepeated(L)
         self.assertEqual(kStar, 6)
@@ -59,7 +59,7 @@ class LabelTest(unittest.TestCase):
         self.assertEqual(K, [8])
 
         X = copmanager.findX(L, K)
-        self.assertEquals(X, Label(8, constant.PERPEN_SYM, 0, 0, 0, 0))
+        self.assertEqual(X, Label.make(8, constant.PERPEN_SYM, 0, 0, 0, 0))
 
 
 class RepeatedKey(unittest.TestCase):
@@ -101,7 +101,6 @@ class CopNumTest(unittest.TestCase):
         tree = nx.Graph()
         tree.add_node(0)
         #self.assertEqual(copmanager.getCopNumber(tree), 0)
-
 
 if __name__ == "__main__":
     unittest.main()

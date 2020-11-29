@@ -14,10 +14,11 @@ class RootedTree:
     '''represents a rooted tree
         tree is networkx.Graph()'''
 
-    def __init__(self, tree, root):
+    def __init__(self, tree, root, labels:dict = None):
         self.tree = tree
         self.root = root
         self.attr = None
+        self.labels = labels
 
     def __str__(self):
         return f'root: {self.root}\n {numpy.array(nx.generate_adjlist(self.tree))}'
@@ -51,7 +52,11 @@ class RootedTree:
 
     def subTree(self, v1):
         '''return a subtree rooted at v1'''
-        return RootedTree(nx.dfs_tree(self.tree, v1), v1)
+        return RootedTree(nx.dfs_tree(self.directed, v1), v1)
+    
+    @property
+    def nodes(self):
+        return self.tree.nodes
 
     def save(self):
         '''Save the tree to a .txt file'''

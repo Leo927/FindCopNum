@@ -16,9 +16,6 @@ import random
 import logging
 from label import Label, SV
 
-labels = dict()
-
-
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -52,8 +49,7 @@ def __reverseListRecur(tree, root, output):
 
 def isKPreBranching(rt, node, k):
     #TODO - test
-    tree = rt.tree
-    return (c1Star(subForest(tree, node, 2)) == k and
+    return (c1Star(subForest(rt, node, 2)) == k and
             c1(joinByU(rt)) == k)
 
 
@@ -65,7 +61,7 @@ def isKWeaklyBranching(rt, node, k):
     # It is exactly one
     numForestMeetCondition = 0
     for forest in forests:
-        if sum(isKPreBranching(component.tree, component.root, k) == True
+        if sum(isKPreBranching(component, component.root, k) == True
                for component in forest) == 2:
             numForestMeetCondition += 1
     if numForestMeetCondition == 1:
@@ -76,17 +72,25 @@ def isKWeaklyBranching(rt, node, k):
 def isKBranching(rt, node, k):
     #TODO - test
     right = True
-    right &= c1Star(subForest(rt, node, 2)) == k
-    right &= (sum(isKWeaklyBranching(rt, rt.root, k)
-                  for rooted_tree in subForest(rt, node, 2)) != 1)
-    right &= (sum(isKWeaklyBranching(rt.tree, rt.root, k)
+    right &= (c1Star(subForest(rt, node, 2)) == k)
+    right &= (sum(isKWeaklyBranching(rooted_tree, rooted_tree.root, k)
+                  for rooted_tree in subForest(rt, node, 2)) == 1)
+    right &= (sum(isKWeaklyBranching(rooted_tree, rooted_tree.root, k)
                   for rooted_tree in subForest(rt, node, 3)) == 0)
     return right
 
 
 def joinByU(rt):
+    newLabels = copy.deepcopy(rt.labels)
+    for key in rt.labels:
+        newLabels[key + 1 + len(rt)] = rt.labels[key]
+    for key in rt.labels:
+        newLabels[key + 1] = rt.labels[key]
+    newLabels[0] = None
+
     return RootedTree(nx.join([(rt.tree, rt.root),
-                               (rt.tree, rt.root)]), rt.root)
+                               (rt.tree, rt.root)]), 2*len(rt)
+                               ,newLabels)
 
 
 def subForest(rt, node, distance=0):
@@ -95,7 +99,7 @@ def subForest(rt, node, distance=0):
     distance += 1
     digraph = nx.bfs_tree(rt.directed, node)
     children = nx.descendants_at_distance(digraph, node, distance)
-    return [RootedTree(nx.bfs_tree(digraph, child), child) for child in children]
+    return [RootedTree(nx.bfs_tree(digraph, child), child, rt.labels) for child in children]
 
 
 def c1(rt):
@@ -124,23 +128,17 @@ def descendant(rt, node, distance=1):
 
 def kPreBranInd(rt, v, k):
     #TODO - test
-    if c1(rt) < 1:
-        raise Exception("c1(T) < 1")
     return int(isKPreBranching(rt, v, k))
 
 
 def kWeakBranInd(rt, v, k):
     #TODO - test
-    if c1(rt) < 1:
-        raise Exception("c1(T) < 1")
     return int(isKWeaklyBranching(rt, v, k))
 
 
 def kInitialCounter(rt, v, k):
     '''Definition 2.3 k-initial-counter'''
     #TODO - test
-    if c1(rt) < 1:
-        raise Exception("c1(T) < 1")
     if(kPreBranInd(rt, v, k) == 0 and c1Star(subForest(rt, v, 0)) == k-1):
         return 0
     elif (kPreBranInd(rt, v, k) == 0 and
@@ -182,7 +180,8 @@ def kWeakCounter(rt, v, k):
 def descOfType(rt, v, k, func):
     '''return the list of children of v that meet a condition'''
     nodes = descendant(rt, v)
-    return [node for node in nodes if func(rt, v, k)]
+    logger.debug(f'finding children of type {func}')
+    return [node for node in nodes if func(rt, v, k)==True]
 
 
 def numKPreBranChild(rt, v, k):
@@ -209,6 +208,10 @@ def numKC1Child(rt, v, k):
 def maxInitialCounter(rt, v, k):
     '''Definiton 2.6
     h^k(T^[u] - u) = max{J^k(vj) for j in v.chidren'''
+    logger.debug(f'descendant of v = {descendant(rt, v)}')
+    children = descendant(rt, v)
+    if len(children) == 0:
+        return 0
     return max([kInitialCounter(rt, vj, k) for vj in descendant(rt, v)])
 
 
@@ -216,50 +219,46 @@ def maxWeaklyCounter(rt, v, k):
     '''Definiton 2.6
     h^k_w(T^[u] -u)) = max{J^k_w(vj) for vj in v.children}'''
     logger.debug(f'maxWeaklyCounter(rt={rt}, v={v}, k={k})')
-    logger.debug(descendant(rt, v))
-    return max([kWeakCounter(rt, vj, k) for vj in descendant(rt, v)])
+    logger.debug(f'descendant of v = {descendant(rt, v)}')
+    children = descendant(rt, v)
+    if len(children) == 0:
+        return 0
+    return max([kWeakCounter(rt, vj, k) for vj in children])
 
 
-def getCopNumber(tree, root=None):
+def getCopNumber(rt:RootedTree):
     '''Algorithem 1
     Compute the copnumber of a tree
     root is picked randomly if not given
     return the label of the root'''
-    # if(len(tree) < 12):
-    #   raise ValueError(f'number of vertices in tree {tree} must be at least 12')
-    # 1
-    logger.debug(f"getCopNumber(tree={tree.nodes}, root={root})")
-    if(root == None):
-        root = tree.nodes[random.randint(0, len(tree) - 1)]
-        logger.debug(f'root is picked to be {root}')
-    rt = RootedTree(tree, root)
+    
 
     # 2
     revNodes = reverseList(rt)
     logger.debug(f'revNodes = {revNodes}')
-    labels = dict((node, Label.noChild() if len(descendant(rt, node)) == 0
-                   else None) for node in revNodes)
-    logger.debug(f'labels = {labels}')
+    if rt.labels == None:
+        rt.labels = dict((node, Label.noChild() if len(descendant(rt, node)) == 0
+                else None) for node in revNodes)
+    logger.debug(f'labels = {rt.labels}')
 
     # 3
-    while(labels[root] == None):
+    while(rt.labels[rt.root] == None):
         getNextLabel(rt, revNodes)
-    return labels[root]
+    return rt.labels[rt.root]
 
 
 def getNextLabel(rt, revNodes):
     # get the first unlabeled node
-    revNodes
-    u = nextUnlabled(revNodes)
+    u = nextUnlabled(rt, revNodes)
     logger.debug(f'u = {u}')
-    children = descendant(rt, u)
+    children = rt.descendant(u)
     logger.debug(f'children of u = {children}')
-    I_perpen, Ib = splitContainPerp(children)
+    I_perpen, Ib = splitContainPerp(rt, children)
     logger.debug(f'I_perpen={I_perpen}')
     logger.debug(f'Ib = {Ib}')
     # construct T1[u]
     logger.debug('T1 is drawn')
-    T1 = trimTreeFromNode(rt, *Ib, *I_perpen)
+    T1 = findT1(rt, u)
     treedrawer.drawRootedTree(T1, title="T1")
     # compute c1(T1)
     LT1u = compute_label(T1, u)[1]
@@ -272,9 +271,9 @@ def getNextLabel(rt, revNodes):
     logger.debug(f'distinctKeys = {distinctKey}')
     logger.debug(f'k = {largestRepeatedKey}')
     if(largestRepeatedKey == None):
-        labels[u] = copy.deepcopy(LT1u)
-        labels[u].sv = labels[u].sv + L[0:-1]
-        return labels[u]
+        rt.labels[u] = copy.deepcopy(LT1u)
+        rt.labels[u].sv = rt.labels[u].sv + L[0:-1]
+        return rt.labels[u]
 
     # 10
     K = decreasingWithMinimum(distinctKey, largestRepeatedKey)
@@ -283,8 +282,33 @@ def getNextLabel(rt, revNodes):
     h = findh(K)
     K = updateK(K, h)
     X = findX(L, K)
-    labels[u] = X
-    return labels[u]
+    rt.labels[u] = X
+    return rt.labels[u]
+
+def findT1(rt, u):
+    #TODO - test
+    logger.debug(f'findT1({rt.tree.nodes}, {u}')
+    T = rt.subTree(u)
+    logger.debug(f"rt is {rt.tree.nodes}\nT is {T.tree.nodes}")
+    children = descendant(T, u)
+    logger.debug(f'children of u = {children}')
+    I_perpen, Ib = splitContainPerp(rt, children)
+    T1 = copy.deepcopy(T)
+    nodes_to_remove = []
+    for child in Ib:
+        if len(rt.labels[child]) >= 1:
+            nodes_to_remove.append(rt.labels[child][-1].attribute)
+        else:
+            logger.debug("no nodes to remove from {child} in Ib = {Ib}")
+    for child in I_perpen:
+        if len(rt.labels[child]) >= 2:
+            nodes_to_remove.append(rt.labels[child][-2].attribute)
+        else:
+            logger.debug("no nodes to remove from {child} in I_perpen = {I_perpen}")
+    T1.trimTreeFromNode(*nodes_to_remove)
+    T1.labels = dict((node, rt.labels[node].lastSix()) 
+                        for node in rt.labels if rt.labels[node] != None)
+    return T1
 
 
 def decreasingWithMinimum(items, minimum):
@@ -325,13 +349,13 @@ def getLeadingLabels(nodes: list, I_perpen: list, LT1u: Label):
     L = []
     for node in nodes:
         L = L + ([l for l in
-                  labels[node].deleteLast(6 if node in I_perpen else 4)
+                  rt.labels[node].deleteLast(6 if node in I_perpen else 4)
                   if l.key >= k])
     L.append(LT1u[1])
     return L
 
 
-def splitContainPerp(nodes):
+def splitContainPerp(rt, nodes):
     '''seperate nodes into two sets.
     One set contains ⊥ in label.
     The other set doesn't.
@@ -342,9 +366,9 @@ def splitContainPerp(nodes):
     # Ib be the subset of children whose label does not contain ⊥
     Ib = []
     for child in nodes:
-        if labels[child] == None:
+        if rt.labels[child] == None:
             logger.critical("some children hasn't got label")
-        if labels[child].containPerpen():
+        if rt.labels[child].containPerpen():
             I_perpen.append(child)
         else:
             Ib.append(child)
@@ -393,10 +417,10 @@ def compute_label(rt, u):
 
     # 1
     if numKWb > 1:
-        return Label.make(k+1, constant.PERPEN_SYM)
+        rt.labels[u] = Label.make(k+1, constant.PERPEN_SYM)
     # 3
     if numKWb == 1 and numKPb >= 1:
-        return Label.make(k+1, constant.PERPEN_SYM, 0, 0, 0, 0)
+        rt.labels[u] = Label.make(k+1, constant.PERPEN_SYM, 0, 0, 0, 0)
 
     # 5
     if (numKWb == 1 and
@@ -404,66 +428,66 @@ def compute_label(rt, u):
             numKC >= 2):
         # 6
         if hkW == 2:
-            return Label.make(k+1, constant.PERPEN_SYM, 0, 0, 0, 0)
+            rt.labels[u] = Label.make(k+1, constant.PERPEN_SYM, 0, 0, 0, 0)
         # 8
         if (hkW == 1 and
                 hk >= 1):
-            return Label.make(k+1, constant.PERPEN_SYM, 0, 0, 0, 0)
+            rt.labels[u] = Label.make(k+1, constant.PERPEN_SYM, 0, 0, 0, 0)
         # 10
         if (hkW == 1 and
                 hk == 0):
-            return Label.make(k, constant.PERPEN_SYM, 1, 2, 0, 0)
+            rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 1, 2, 0, 0)
         # 12
         if (hkW == 0 and
                 hk == 2):
-            return Label.make(k + 1, constant.PERPEN_SYM, 0, 0, 0, 0)
+            rt.labels[u] = Label.make(k + 1, constant.PERPEN_SYM, 0, 0, 0, 0)
         # 14
         if (hkW == 0 and
                 hk <= 1):
-            return Label.make(k + 1, constant.PERPEN_SYM, 1, 1, 0, 0)
+            rt.labels[u] = Label.make(k + 1, constant.PERPEN_SYM, 1, 1, 0, 0)
     # 16
     if numKWb == 1 and numKC == 1:
         # 17
         if hkW == 2:
-            return Label.make(k, u)
+            rt.labels[u] = Label.make(k, u)
         # 19
         if hkW == 1:
-            return Label.make(k, constant.PERPEN_SYM, 1, 2, 0, 0)
+            rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 1, 2, 0, 0)
         # 21
         if hkW == 0:
-            return Label.make(k, constant.PERPEN_SYM, 1, 1, 0, 0)
+            rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 1, 1, 0, 0)
     # 23
     if numKWb == 0:
         # 24
         if numKPb >= 3:
-            return Label.make(k+1, constant.PERPEN_SYM)
+            rt.labels[u] = Label.make(k+1, constant.PERPEN_SYM)
         # 26
         if numKPb == 2:
-            return Label.make(k, constant.PERPEN_SYM, 1, 0, 0, 0)
+            rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 1, 0, 0, 0)
         # 28
         if numKPb == 1:
-            return Label.make(k, constant.PERPEN_SYM, 0, 0, 1, 0)
+            rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 0, 0, 1, 0)
         # 30
         if numKPb == 0:
             # 31
             if hk == 2:
-                return Label.make(k, constant.PERPEN_SYM, 0, 0, 1, 0)
+                rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 0, 0, 1, 0)
             # 33
             if hk == 1:
-                return Label.make(k, constant.PERPEN_SYM, 0, 0, 0, 2)
+                rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 0, 0, 0, 2)
             # 35
             if hk == 0:
-                return Label.make(k, constant.PERPEN_SYM, 0, 0, 0, 1)
-    raise Exception("nothing is returned from compute-label")
+                rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 0, 0, 0, 1)
+    raise Exception("nothing is changed from compute-label")
 
 
-def nextUnlabled(revNodes):
-    return next(node for node in revNodes if labels[node] == None)
+def nextUnlabled(rt, revNodes):    
+    return next(node for node in revNodes if rt.labels[node] == None)
 
 
 def kBranchingDescendent(rt, v, k):
     descendents = nx.bfs_successors(rt.directed, v)
-    return [node for node in descendents if isKBranching(rt, v, k)]
+    return [node for node in descendents if isKBranching(rt, node, k)]
 
 
 def trimTreeFromNode(rt, *arg):
@@ -480,4 +504,13 @@ if __name__ == "__main__":
 
     rt = RootedTree.load(0)
     treedrawer.drawRootedTree(rt)
-    getCopNumber(rt.tree, rt.root)
+    getCopNumber(rt)
+
+    # graph = nx.Graph()
+    # graph.add_edge(0,1)
+    
+    # rt = RootedTree(graph, 0, {0:Label.make(1,0), 1:Label.make(2,1)})
+    # treedrawer.drawRootedTree(rt)
+    # treedrawer.drawRootedTree(joinByU(rt))
+    # print(joinByU(rt).labels)
+

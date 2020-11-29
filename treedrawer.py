@@ -9,13 +9,14 @@ def drawGraph(graph:nx.classes.graph.Graph,
               savePath='tempTree', 
               show:bool=True, 
               root=None,
-              nodeAttr=None):   
+              nodeAttr=None,
+              title = None):   
         #change root if given
     digraph = copy.deepcopy(graph)
     if root!= None:
         digraph = nx.bfs_tree(graph,root)
     #adjust the figure size based on the number of nodes
-    plt.figure(figsize=(max(10,len(graph)/5),max(5,len(graph)/10)))
+    plt.figure(num = title, figsize=(max(10,len(graph)/5),max(5,len(graph)/10)))
     
     #use pygraphviz to get layout
     pos = graphviz_layout(digraph, prog='dot')
@@ -32,8 +33,8 @@ def drawGraph(graph:nx.classes.graph.Graph,
         plt.show()
         
         
-def drawRootedTree(rooted_tree):
-    drawGraph(rooted_tree.tree,root=rooted_tree.root, nodeAttr=rooted_tree.attr)
+def drawRootedTree(rooted_tree, title=None):
+    drawGraph(rooted_tree.tree,root=rooted_tree.root, nodeAttr=rooted_tree.attr, title=title)
     
     
 def __drawNodeAttr(G, pos, attr):

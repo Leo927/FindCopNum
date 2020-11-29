@@ -32,9 +32,15 @@ class Label:
         self.ind = [None for i in range(5)]
 
     def __getitem__(self, i):
-        if i == 0:
+        if i > 0:
+            return self.sv[i-1]  # compensate for 1 start
+        elif i < 0:
+            return self.sv[i]
+        else:
             raise IndexError
-        return self.sv[i-1]  # compensate for 1 start
+
+    def __len__(self):
+        return len(self.sv)
 
     def __eq__(self, other):
         return (type(other) == Label and self.sv == other.sv and self.ind == other.ind)

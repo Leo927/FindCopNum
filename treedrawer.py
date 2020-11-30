@@ -40,9 +40,9 @@ def drawRootedTree(rooted_tree, title=None):
 def __drawNodeAttr(G, pos, attr):
     if attr == None:
         return
-    labelPos = __offsetPos(pos, -10, 5);
+    labelPos = __offsetPos(pos, 0, 30)
     node_labels = nx.get_node_attributes(G,attr)
-    nx.draw_networkx_labels(G, labelPos, labels = node_labels)
+    nx.draw_networkx_labels(G, labelPos, labels = node_labels, font_size=6, font_color='r')
     
     
 def __offsetPos(pos, dX, dY):

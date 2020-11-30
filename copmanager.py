@@ -17,15 +17,15 @@ import logging
 from label import Label, SV
 
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger("copmanager")
+
 # create console handler and set level to debug
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 
 # create formatter
 formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    '%(asctime)s - %(name)s - %(funcName)s line %(lineno)d - %(levelname)s - %(message)s')
 
 # add formatter to ch
 ch.setFormatter(formatter)
@@ -180,7 +180,7 @@ def descOfType(rt, v, k, func):
     '''return the list of children of v that meet a condition'''
     nodes = descendant(rt, v)
     logger.debug(f'finding children of type {func}')
-    return [node for node in nodes if func(rt, v, k) == True]
+    return [node for node in nodes if func(rt, node, k) == True]
 
 
 def numKPreBranChild(rt, v, k):
@@ -199,7 +199,7 @@ def numKWeakBranChild(rt, v, k):
 
 def numKC1Child(rt, v, k):
     '''Definiton 2.6
-    #_c^k(T^[u] - u) = |{j for c1(T^[vj]) =k for vj in u.children'''
+    #_c^k(T^[u] - u) = |{j if c1(T^[vj]) =k for vj in u.children'''
     #TODO - test
     return len(descOfType(rt, v, k, lambda _rt, _vj, _k: c1(_rt.subTree(_vj)) == _k))
 
@@ -210,8 +210,8 @@ def maxInitialCounter(rt, v, k):
     logger.debug(f'descendant of v = {descendant(rt, v)}')
     children = descendant(rt, v)
     if len(children) == 0:
-        return 0
-    return max([kInitialCounter(rt, vj, k) for vj in descendant(rt, v)])
+        raise Exception("no children is given to maxWeaklyCounter")
+    return max([rt.labels[vj].initialCounter for vj in descendant(rt, v)])
 
 
 def maxWeaklyCounter(rt, v, k):
@@ -221,8 +221,8 @@ def maxWeaklyCounter(rt, v, k):
     logger.debug(f'descendant of v = {descendant(rt, v)}')
     children = descendant(rt, v)
     if len(children) == 0:
-        return 0
-    return max([kWeakCounter(rt, vj, k) for vj in children])
+        raise Exception("no children is given to maxWeaklyCounter")
+    return max([rt.labels[vj].weaklyCounter for vj in children])
 
 
 def getCopNumber(rt: RootedTree):
@@ -230,14 +230,16 @@ def getCopNumber(rt: RootedTree):
     Compute the copnumber of a tree
     root is picked randomly if not given
     return the label of the root'''
-
+    if rt.labels!= None and rt.labels[rt.root] != None:
+        logger.debug(f"the cop number is already knonwn for rt = {rt}")
+        return rt.labels[rt.root]
     # 2
     revNodes = reverseList(rt)
     logger.debug(f'revNodes = {revNodes}')
     if rt.labels == None:
         rt.labels = dict((node, Label.noChild() if len(descendant(rt, node)) == 0
                           else None) for node in revNodes)
-    logger.debug(f'labels = {rt.labels}')
+    logger.debug(f'rt = {rt}')
 
     # 3
     while(rt.labels[rt.root] == None):
@@ -257,12 +259,13 @@ def getNextLabel(rt, revNodes):
     # construct T1[u]
     logger.debug('T1 is drawn')
     T1 = findT1(rt, u)
+    logger.debug(f'T1 = {T1}')
     treedrawer.drawRootedTree(T1, title="T1")
     # compute c1(T1)
-    LT1u = compute_label(T1, u)[1]
+    LT1u = compute_label(T1, u)
     logger.debug(f'LT1u = {LT1u}')
     # 7
-    L = getLeadingLabels(children, I_perpen, LT1u)
+    L = getLeadingLabels(rt, children, I_perpen, LT1u)
     logger.debug(f'L = {L}')
     # 8, #9
     distinctKey, largestRepeatedKey = keyRepeated(L)
@@ -297,17 +300,14 @@ def findT1(rt, u):
     for child in Ib:
         if len(rt.labels[child]) >= 1:
             nodes_to_remove.append(rt.labels[child][-1].attribute)
-        else:
-            logger.debug("no nodes to remove from {child} in Ib = {Ib}")
     for child in I_perpen:
         if len(rt.labels[child]) >= 2:
             nodes_to_remove.append(rt.labels[child][-2].attribute)
-        else:
-            logger.debug(
-                "no nodes to remove from {child} in I_perpen = {I_perpen}")
+    logger.debug(f'nodes to remove{nodes_to_remove}')
     T1.trimTreeFromNode(*nodes_to_remove)
     T1.labels = dict((node, rt.labels[node].lastSix())
                      for node in rt.labels if rt.labels[node] != None)
+    
     return T1
 
 
@@ -338,7 +338,7 @@ def updateK(K, h):
     return K
 
 
-def getLeadingLabels(nodes: list, I_perpen: list, LT1u: Label):
+def getLeadingLabels(rt, nodes: list, I_perpen: list, LT1u: Label):
     '''Algorithem 1 #7
     nodes: raw data type representing nodes
     labels: dict of node:Label pairs
@@ -401,9 +401,11 @@ def findX(L, K):
 
 
 def compute_label(rt, u):
-    '''rt = T1'''
+    '''rt = T1
+    return T1u[u]'''
+    logger.debug("start")
     k = c1Star(subForest(rt, u))
-
+    logger.debug(f'k = {k}')
     # ^k_wb
     numKWb = numKWeakBranChild(rt, u, k)
     # ^k_pb
@@ -414,6 +416,8 @@ def compute_label(rt, u):
     hkW = maxWeaklyCounter(rt, u, k)
     # h^k
     hk = maxInitialCounter(rt, u, k)
+
+    logger.debug(f"numKWb = {numKWb}, numKPb = {numKPb}, numKC ={numKC}, hkW = {hkW}, hk={hk}")
 
     # 1
     if numKWb > 1:
@@ -478,7 +482,9 @@ def compute_label(rt, u):
             # 35
             if hk == 0:
                 rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 0, 0, 0, 1)
-    raise Exception("nothing is changed from compute-label")
+    if rt.labels[u]==None:
+        raise Exception("nothing is changed from compute-label")
+    return rt.labels[u]
 
 
 def nextUnlabled(rt, revNodes):
@@ -501,10 +507,10 @@ def trimTreeFromNode(rt, *arg):
 
 
 if __name__ == "__main__":
-
+    logger.setLevel(logging.DEBUG)
     rt = RootedTree.load(0)
     treedrawer.drawRootedTree(rt)
-    getCopNumber(rt)
+    print(getCopNumber(rt))
 
     # graph = nx.Graph()
     # graph.add_edge(0,1)

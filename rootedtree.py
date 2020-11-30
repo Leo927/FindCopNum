@@ -41,7 +41,7 @@ class RootedTree:
     @classmethod
     def load(cls, root, path=constant.treeFilePath):
         '''Return a tree with tree in a file and a root as given'''
-        graph = nx.read_adjlist(constant.treeFilePath)
+        graph = nx.read_adjlist(path)
         mapping = dict((node, int(node)) for node in graph.nodes)
         graph = nx.relabel_nodes(graph, mapping)
         return cls(graph, root)

@@ -21,7 +21,7 @@ class RootedTree:
         self.labels = labels
 
     def __str__(self):
-        return f'root: {self.root}\n {numpy.array(nx.generate_adjlist(self.tree))}'
+        return f'root: {self.root}\n {self.tree.nodes}\nlabels={self.labels}'
 
     def __repr__(self):
         return str(self)
@@ -52,7 +52,7 @@ class RootedTree:
 
     def subTree(self, v1):
         '''return a subtree rooted at v1'''
-        return RootedTree(nx.dfs_tree(self.directed, v1), v1)
+        return RootedTree(nx.dfs_tree(self.directed, v1), v1, self.labels)
     
     @property
     def nodes(self):
@@ -138,7 +138,7 @@ class RootedTree:
         in given distance'''
         distance += 1
         children = nx.descendants_at_distance(self.directed, node, distance)
-        return [RootedTree(nx.bfs_tree(self.directed, child), child) for child in children]
+        return [RootedTree(nx.bfs_tree(self.directed, child), child, self.labels) for child in children]
 
 
 

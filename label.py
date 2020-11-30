@@ -25,6 +25,7 @@ class SV:
         return self.v
 
 
+
 class Label:
 
     def __init__(self):
@@ -37,7 +38,25 @@ class Label:
         elif i < 0:
             return self.sv[i]
         else:
-            raise IndexError
+            raise IndexError    
+
+    @property
+    def weakBranInd(self):
+        return self.ind[0]
+    
+    @property
+    def weaklyCounter(self):
+        return self.ind[1]
+
+    @property
+    def prebranInd(self):
+        return self.ind[2]
+    
+    @property
+    def initialCounter(self):
+        return self.ind[3]
+    
+    
 
     def __len__(self):
         return len(self.sv)

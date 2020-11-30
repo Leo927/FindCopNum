@@ -89,8 +89,7 @@ def joinByU(rt):
     newLabels[0] = None
 
     return RootedTree(nx.join([(rt.tree, rt.root),
-                               (rt.tree, rt.root)]), 2*len(rt)
-                               ,newLabels)
+                               (rt.tree, rt.root)]), 2*len(rt), newLabels)
 
 
 def subForest(rt, node, distance=0):
@@ -181,7 +180,7 @@ def descOfType(rt, v, k, func):
     '''return the list of children of v that meet a condition'''
     nodes = descendant(rt, v)
     logger.debug(f'finding children of type {func}')
-    return [node for node in nodes if func(rt, v, k)==True]
+    return [node for node in nodes if func(rt, v, k) == True]
 
 
 def numKPreBranChild(rt, v, k):
@@ -202,7 +201,7 @@ def numKC1Child(rt, v, k):
     '''Definiton 2.6
     #_c^k(T^[u] - u) = |{j for c1(T^[vj]) =k for vj in u.children'''
     #TODO - test
-    return len(descOfType(rt, v, k, lambda vj: c1(rt.subTree(vj)) == k))
+    return len(descOfType(rt, v, k, lambda _rt, _vj, _k: c1(_rt.subTree(_vj)) == _k))
 
 
 def maxInitialCounter(rt, v, k):
@@ -226,19 +225,18 @@ def maxWeaklyCounter(rt, v, k):
     return max([kWeakCounter(rt, vj, k) for vj in children])
 
 
-def getCopNumber(rt:RootedTree):
+def getCopNumber(rt: RootedTree):
     '''Algorithem 1
     Compute the copnumber of a tree
     root is picked randomly if not given
     return the label of the root'''
-    
 
     # 2
     revNodes = reverseList(rt)
     logger.debug(f'revNodes = {revNodes}')
     if rt.labels == None:
         rt.labels = dict((node, Label.noChild() if len(descendant(rt, node)) == 0
-                else None) for node in revNodes)
+                          else None) for node in revNodes)
     logger.debug(f'labels = {rt.labels}')
 
     # 3
@@ -285,6 +283,7 @@ def getNextLabel(rt, revNodes):
     rt.labels[u] = X
     return rt.labels[u]
 
+
 def findT1(rt, u):
     #TODO - test
     logger.debug(f'findT1({rt.tree.nodes}, {u}')
@@ -304,10 +303,11 @@ def findT1(rt, u):
         if len(rt.labels[child]) >= 2:
             nodes_to_remove.append(rt.labels[child][-2].attribute)
         else:
-            logger.debug("no nodes to remove from {child} in I_perpen = {I_perpen}")
+            logger.debug(
+                "no nodes to remove from {child} in I_perpen = {I_perpen}")
     T1.trimTreeFromNode(*nodes_to_remove)
-    T1.labels = dict((node, rt.labels[node].lastSix()) 
-                        for node in rt.labels if rt.labels[node] != None)
+    T1.labels = dict((node, rt.labels[node].lastSix())
+                     for node in rt.labels if rt.labels[node] != None)
     return T1
 
 
@@ -481,7 +481,7 @@ def compute_label(rt, u):
     raise Exception("nothing is changed from compute-label")
 
 
-def nextUnlabled(rt, revNodes):    
+def nextUnlabled(rt, revNodes):
     return next(node for node in revNodes if rt.labels[node] == None)
 
 
@@ -508,9 +508,8 @@ if __name__ == "__main__":
 
     # graph = nx.Graph()
     # graph.add_edge(0,1)
-    
+
     # rt = RootedTree(graph, 0, {0:Label.make(1,0), 1:Label.make(2,1)})
     # treedrawer.drawRootedTree(rt)
     # treedrawer.drawRootedTree(joinByU(rt))
     # print(joinByU(rt).labels)
-

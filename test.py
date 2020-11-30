@@ -16,12 +16,15 @@ class LabelTest(unittest.TestCase):
         self.label = Label()
         self.label.append(1, 9)
         self.label.append(-5, constant.PERPEN_SYM)
+    
 
     def test_index_is_ok(self):
         self.assertEqual(self.label[1].attribute, 9)
         self.assertEqual(self.label[2].key, -5)
         with self.assertRaises(IndexError):
             self.label[0]
+        self.assertEqual(self.label[-1].key, -5)
+        self.assertEqual(self.label[-2].key, 1)
 
     def test_next_unlabled(self):
         nodes = [5, 4, 3, 2, 1, 0]

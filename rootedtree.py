@@ -17,7 +17,7 @@ class RootedTree:
     def __init__(self, tree, root, labels:dict = None):
         self.tree = tree
         self.root = root
-        self.attr = None
+        self.attr = 'label'
         self.labels = labels
 
     def __str__(self):

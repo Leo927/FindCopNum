@@ -49,6 +49,8 @@ def __reverseListRecur(tree, root, output):
 
 def isKPreBranching(rt, node, k):
     #TODO - test
+    if rt.labels[node]!= None:
+        return bool(rt.labels[node].prebranInd)
     joined = joinByU(rt)
     return (c1Star(subForest(rt, node, 2)) == k and
             c1(joined) == k)
@@ -56,6 +58,8 @@ def isKPreBranching(rt, node, k):
 
 def isKWeaklyBranching(rt, node, k):
     #TODO - test
+    if rt.labels[node]!= None:
+        return bool(rt.labels[node].weakBranInd)
     forests = [subForest(rt, node, 0),
                subForest(rt, node, 1),
                subForest(rt, node, 2)]
@@ -96,12 +100,11 @@ def joinByU(rt):
 
 
 def subForest(rt, node, distance=0):
-    '''Return a forst of RootedTree by removing neigbhor of node 
-    in given distance'''
+    '''Return a forst of RootedTree by finding subTree of children at
+    the distance'''
     distance += 1
-    digraph = nx.bfs_tree(rt.directed, node)
-    children = nx.descendants_at_distance(digraph, node, distance)
-    subForests = [RootedTree(nx.bfs_tree(digraph, child), child, rt.labels) for child in children]
+    children = nx.descendants_at_distance(rt.directed, node, distance)
+    subForests = [rt.subTree(child) for child in children]
     return subForests
 
 
@@ -142,6 +145,8 @@ def kWeakBranInd(rt, v, k):
 def kInitialCounter(rt, v, k):
     '''Definition 2.3 k-initial-counter'''
     #TODO - test
+    if rt.labels[v] != None:
+        return rt.labels[v].initialCounter
     if(kPreBranInd(rt, v, k) == 0 and c1Star(subForest(rt, v, 0)) == k-1):
         return 0
     elif (kPreBranInd(rt, v, k) == 0 and
@@ -159,6 +164,8 @@ def kInitialCounter(rt, v, k):
 def kWeakCounter(rt, v, k):
     '''Definition 2.3 find k-weakly-counter'''
     #TODO - test
+    if rt.labels[v] != None:
+        return rt.labels[v].weaklyCounter
     if (kWeakBranInd(rt, v, k) == 1):
         k_pre_branching_child = [child for child in descendant(rt, v)
                                  if isKPreBranching(rt, child, k)]
@@ -511,10 +518,9 @@ def trimTreeFromNode(rt, *arg):
 
 if __name__ == "__main__":
     logger.setLevel(logging.DEBUG)
-    rt = RootedTree.load(0, "example2_5b.txt")
+    rt = RootedTree.load(5, "example4_3.txt")
     print(getCopNumber(rt))
-    nx.set_node_attributes(rt.tree, rt.labels,'label')
-    treedrawer.drawRootedTree(rt)
+    treedrawer.drawRootedTree(rt, True)
 
     # graph = nx.Graph()
     # graph.add_edge(0,1)

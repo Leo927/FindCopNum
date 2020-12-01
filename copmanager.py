@@ -283,7 +283,7 @@ def getNextLabel(rt, revNodes):
     # 8, #9
     distinctKey, largestRepeatedKey = keyRepeated(L)
     logger.debug(f'distinctKeys = {distinctKey}')
-    logger.debug(f'k = {largestRepeatedKey}')
+    logger.debug(f'k* = {largestRepeatedKey}')
     if(largestRepeatedKey == None):
         rt.labels[u] = copy.deepcopy(LT1u)
         rt.labels[u].sv = rt.labels[u].sv + L[0:-1]
@@ -291,11 +291,14 @@ def getNextLabel(rt, revNodes):
 
     # 10
     K = decreasingWithMinimum(distinctKey, largestRepeatedKey)
-
+    logger.debug(f'K = {K}')
     # 11
     h = findh(K)
+    logger.debug(f'h = {h}')
     K = updateK(K, h)
+    logger.debug(f'update K = {K}')
     X = findX(L, K)
+    logger.debug(f'X = {X}')
     rt.labels[u] = X
     return rt.labels[u]
 
@@ -317,7 +320,7 @@ def findT1(rt, u):
         if len(rt.labels[child]) >= 2:
             nodes_to_remove.append(rt.labels[child][-2].attribute)
     logger.debug(f'nodes to remove{nodes_to_remove}')
-    T1.trimTreeFromNode(*nodes_to_remove)
+    T1 = T1.trimTreeFromNode(*nodes_to_remove)
     T1.labels = dict((node, rt.labels[node].lastSix())
                      for node in rt.labels if rt.labels[node] != None)
     return T1
@@ -344,6 +347,8 @@ def updateK(K, h):
     temp = K[h-1]+1
     if h <= 1:
         K = []
+    elif h == 2:
+        K = [K[0]]
     else:
         K = K[0: h-2]
     K.append(temp)
@@ -359,10 +364,16 @@ def getLeadingLabels(rt, nodes: list, I_perpen: list, LT1u: Label):
     return [SV]'''
     k = LT1u.value
     L = []
+    logger.debug(f'nodes = {nodes}, I_perpen = {I_perpen}')
     for node in nodes:
+        if node in I_perpen:
+            numToDelete = 6
+        else:
+            numToDelete = 4
+        logger.debug(f"node = {node}, adding {rt.labels[node].deleteLast(numToDelete)}")
         L = L + ([l for l in
-                  rt.labels[node].deleteLast(6 if node in I_perpen else 4)
-                  if l.key >= k])
+                rt.labels[node].deleteLast(numToDelete)
+                if l.key >= k])
     L.append(LT1u[1])
     return L
 
@@ -520,10 +531,20 @@ def trimTreeFromNode(rt, *arg):
 
 
 if __name__ == "__main__":
-    logger.setLevel(logging.DEBUG)
-    rt = RootedTree.load(5, "example4_3.txt")
+    rt = RootedTree.load(0, "example4_5.txt")
+    x1 = 11
+    x2 = 12
+    x3 = 13
+    rt.labels = {0:None, 1: Label.make(4,constant.PERPEN_SYM, 0,0,1,0), 2: Label.make(4,constant.PERPEN_SYM, 0,0,1,0),
+                    3: Label.make(5,x1, 0,0,0,2).append(2,constant.PERPEN_SYM), 4:Label.make(8,x2, 0,0,0,0).append(4,4),
+                    5: Label.make(6,x3, 0,0,0,0).append(2,5),
+                    11:Label.make(5,constant.PERPEN_SYM),
+                    12:Label.make(8, constant.PERPEN_SYM),
+                    13: Label.make(6, constant.PERPEN_SYM)}
     print(getCopNumber(rt))
     treedrawer.drawRootedTree(rt, True)
+    
+
 
     # graph = nx.Graph()
     # graph.add_edge(0,1)

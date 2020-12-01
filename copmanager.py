@@ -49,8 +49,9 @@ def __reverseListRecur(tree, root, output):
 
 def isKPreBranching(rt, node, k):
     #TODO - test
+    joined = joinByU(rt)
     return (c1Star(subForest(rt, node, 2)) == k and
-            c1(joinByU(rt)) == k)
+            c1(joined) == k)
 
 
 def isKWeaklyBranching(rt, node, k):
@@ -58,7 +59,6 @@ def isKWeaklyBranching(rt, node, k):
     forests = [subForest(rt, node, 0),
                subForest(rt, node, 1),
                subForest(rt, node, 2)]
-    # It is exactly one
     numForestMeetCondition = 0
     for forest in forests:
         if sum(isKPreBranching(component, component.root, k) == True
@@ -81,15 +81,18 @@ def isKBranching(rt, node, k):
 
 
 def joinByU(rt):
-    newLabels = copy.deepcopy(rt.labels)
-    for key in rt.labels:
-        newLabels[key + 1 + len(rt)] = rt.labels[key]
-    for key in rt.labels:
-        newLabels[key + 1] = rt.labels[key]
+
+    nx.set_node_attributes(rt.tree, rt.labels, 'label')
+    
+    joined = nx.join([(rt.tree,rt.root), (rt.tree,rt.root)])
+    
+    newLabels = nx.get_node_attributes(joined, 'label')
     newLabels[0] = None
 
-    return RootedTree(nx.join([(rt.tree, rt.root),
-                               (rt.tree, rt.root)]), 2*len(rt), newLabels)
+    
+
+    newRT = RootedTree(joined, 0, newLabels)
+    return newRT
 
 
 def subForest(rt, node, distance=0):
@@ -98,7 +101,8 @@ def subForest(rt, node, distance=0):
     distance += 1
     digraph = nx.bfs_tree(rt.directed, node)
     children = nx.descendants_at_distance(digraph, node, distance)
-    return [RootedTree(nx.bfs_tree(digraph, child), child, rt.labels) for child in children]
+    subForests = [RootedTree(nx.bfs_tree(digraph, child), child, rt.labels) for child in children]
+    return subForests
 
 
 def c1(rt):
@@ -180,7 +184,7 @@ def descOfType(rt, v, k, func):
     '''return the list of children of v that meet a condition'''
     nodes = descendant(rt, v)
     logger.debug(f'finding children of type {func}')
-    return [node for node in nodes if func(rt, node, k) == True]
+    return [node for node in nodes if func(rt.subTree(node), node, k) == True]
 
 
 def numKPreBranChild(rt, v, k):
@@ -230,16 +234,18 @@ def getCopNumber(rt: RootedTree):
     Compute the copnumber of a tree
     root is picked randomly if not given
     return the label of the root'''
+    
     if rt.labels!= None and rt.labels[rt.root] != None:
         logger.debug(f"the cop number is already knonwn for rt = {rt}")
         return rt.labels[rt.root]
+    logger.debug(f'rt = {rt}')
+    treedrawer.drawRootedTree(rt, True)
     # 2
     revNodes = reverseList(rt)
-    logger.debug(f'revNodes = {revNodes}')
     if rt.labels == None:
         rt.labels = dict((node, Label.noChild() if len(descendant(rt, node)) == 0
                           else None) for node in revNodes)
-    logger.debug(f'rt = {rt}')
+        logger.debug(f'rt = {rt}')
 
     # 3
     while(rt.labels[rt.root] == None):
@@ -257,10 +263,8 @@ def getNextLabel(rt, revNodes):
     logger.debug(f'I_perpen={I_perpen}')
     logger.debug(f'Ib = {Ib}')
     # construct T1[u]
-    logger.debug('T1 is drawn')
     T1 = findT1(rt, u)
     logger.debug(f'T1 = {T1}')
-    treedrawer.drawRootedTree(T1, title="T1")
     # compute c1(T1)
     LT1u = compute_label(T1, u)
     logger.debug(f'LT1u = {LT1u}')
@@ -307,7 +311,6 @@ def findT1(rt, u):
     T1.trimTreeFromNode(*nodes_to_remove)
     T1.labels = dict((node, rt.labels[node].lastSix())
                      for node in rt.labels if rt.labels[node] != None)
-    
     return T1
 
 
@@ -508,14 +511,17 @@ def trimTreeFromNode(rt, *arg):
 
 if __name__ == "__main__":
     logger.setLevel(logging.DEBUG)
-    rt = RootedTree.load(0)
-    treedrawer.drawRootedTree(rt)
+    rt = RootedTree.load(0, "example2_5b.txt")
     print(getCopNumber(rt))
+    nx.set_node_attributes(rt.tree, rt.labels,'label')
+    treedrawer.drawRootedTree(rt)
 
     # graph = nx.Graph()
     # graph.add_edge(0,1)
+    # graph.add_edge(0,2)
+    # labels = {0:Label.make(1,constant.PERPEN_SYM), 1:Label.make(1,1), 2:Label.make(1,3)}
+    # rt = RootedTree(graph, 0, labels)
+    # joined = joinByU(rt)
 
-    # rt = RootedTree(graph, 0, {0:Label.make(1,0), 1:Label.make(2,1)})
-    # treedrawer.drawRootedTree(rt)
-    # treedrawer.drawRootedTree(joinByU(rt))
-    # print(joinByU(rt).labels)
+    # treedrawer.drawRootedTree(joined)
+    # print(joined.labels)

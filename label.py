@@ -107,5 +107,11 @@ class Label:
 
     def deleteLast(self, n):
         if n == 4:
-            return [sv for sv in self.sv]
-        return self.sv[0: int(-(n-2)/2 + 1)]
+            return copy.deepcopy(self.sv)
+        return self.sv[0: int(-(n-4)/2)]
+
+
+if __name__ == "__main__":
+    l = Label.make(1,2)
+    print(l)
+    print(l.deleteLast(6))

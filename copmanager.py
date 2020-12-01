@@ -49,8 +49,9 @@ def __reverseListRecur(tree, root, output):
 
 def isKPreBranching(rt, node, k):
     #TODO - test
-    if rt.labels[node]!= None:
-        return bool(rt.labels[node].prebranInd)
+    if rt.labels[node] != None:
+        return bool(rt.labels[node].prebranInd) and rt.labels[node].value == k
+    logger.warning("node is not labeled")
     joined = joinByU(rt)
     return (c1Star(subForest(rt, node, 2)) == k and
             c1(joined) == k)
@@ -58,8 +59,9 @@ def isKPreBranching(rt, node, k):
 
 def isKWeaklyBranching(rt, node, k):
     #TODO - test
-    if rt.labels[node]!= None:
-        return bool(rt.labels[node].weakBranInd)
+    if rt.labels[node] != None:
+        return bool(rt.labels[node].weakBranInd) and rt.labels[node].value == k
+    logger.warning("node is not labeled")
     forests = [subForest(rt, node, 0),
                subForest(rt, node, 1),
                subForest(rt, node, 2)]
@@ -87,13 +89,11 @@ def isKBranching(rt, node, k):
 def joinByU(rt):
 
     nx.set_node_attributes(rt.tree, rt.labels, 'label')
-    
-    joined = nx.join([(rt.tree,rt.root), (rt.tree,rt.root)])
-    
+
+    joined = nx.join([(rt.tree, rt.root), (rt.tree, rt.root)])
+
     newLabels = nx.get_node_attributes(joined, 'label')
     newLabels[0] = None
-
-    
 
     newRT = RootedTree(joined, 0, newLabels)
     return newRT
@@ -111,6 +111,9 @@ def subForest(rt, node, distance=0):
 def c1(rt):
     '''find cop number of a rooted tree'''
     #TODO - implement
+    if rt.labels[rt.root] != None:
+        return rt.labels[rt.root].value
+    logger.warning("node is not labeled")
     return getCopNumber(rt).value
 
 
@@ -144,9 +147,9 @@ def kWeakBranInd(rt, v, k):
 
 def kInitialCounter(rt, v, k):
     '''Definition 2.3 k-initial-counter'''
-    #TODO - test
+    #TODO - tes
     if rt.labels[v] != None:
-        return rt.labels[v].initialCounter
+        return rt.labels[v].initialCounter and rt.labels[v].value == k
     if(kPreBranInd(rt, v, k) == 0 and c1Star(subForest(rt, v, 0)) == k-1):
         return 0
     elif (kPreBranInd(rt, v, k) == 0 and
@@ -165,7 +168,7 @@ def kWeakCounter(rt, v, k):
     '''Definition 2.3 find k-weakly-counter'''
     #TODO - test
     if rt.labels[v] != None:
-        return rt.labels[v].weaklyCounter
+        return rt.labels[v].weaklyCounter and rt.labels[v].value == k
     if (kWeakBranInd(rt, v, k) == 1):
         k_pre_branching_child = [child for child in descendant(rt, v)
                                  if isKPreBranching(rt, child, k)]
@@ -241,12 +244,11 @@ def getCopNumber(rt: RootedTree):
     Compute the copnumber of a tree
     root is picked randomly if not given
     return the label of the root'''
-    
-    if rt.labels!= None and rt.labels[rt.root] != None:
+
+    if rt.labels != None and rt.labels[rt.root] != None:
         logger.debug(f"the cop number is already knonwn for rt = {rt}")
         return rt.labels[rt.root]
     logger.debug(f'rt = {rt}')
-    treedrawer.drawRootedTree(rt, True)
     # 2
     revNodes = reverseList(rt)
     if rt.labels == None:
@@ -427,7 +429,8 @@ def compute_label(rt, u):
     # h^k
     hk = maxInitialCounter(rt, u, k)
 
-    logger.debug(f"numKWb = {numKWb}, numKPb = {numKPb}, numKC ={numKC}, hkW = {hkW}, hk={hk}")
+    logger.debug(
+        f"numKWb = {numKWb}, numKPb = {numKPb}, numKC ={numKC}, hkW = {hkW}, hk={hk}")
 
     # 1
     if numKWb > 1:
@@ -492,7 +495,7 @@ def compute_label(rt, u):
             # 35
             if hk == 0:
                 rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 0, 0, 0, 1)
-    if rt.labels[u]==None:
+    if rt.labels[u] == None:
         raise Exception("nothing is changed from compute-label")
     return rt.labels[u]
 

@@ -20,6 +20,7 @@ def drawGraph(graph:nx.classes.graph.Graph,
     
     #use pygraphviz to get layout
     pos = graphviz_layout(digraph, prog='dot')
+
     #using the pygraphviz layout to get a tree like figure
     nx.draw(graph, pos, with_labels=True, arrows=False)    
     
@@ -33,7 +34,9 @@ def drawGraph(graph:nx.classes.graph.Graph,
         plt.show()
         
         
-def drawRootedTree(rooted_tree, title=None):
+def drawRootedTree(rooted_tree, showLabel=False, title=None):
+    if showLabel:
+        nx.set_node_attributes(rooted_tree.tree, rooted_tree.labels, 'label')
     drawGraph(rooted_tree.tree,root=rooted_tree.root, nodeAttr=rooted_tree.attr, title=title)
     
     

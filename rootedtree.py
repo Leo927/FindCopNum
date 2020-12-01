@@ -138,7 +138,7 @@ class RootedTree:
         in given distance'''
         distance += 1
         children = nx.descendants_at_distance(self.directed, node, distance)
-        return [RootedTree(nx.bfs_tree(self.directed, child), child, self.labels) for child in children]
+        return [self.subTree(child) for child in children]
 
 
 

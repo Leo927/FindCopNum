@@ -114,7 +114,12 @@ class ExampleTest(unittest.TestCase):
         rt = RootedTree.load(0, "example4_2.txt")
         self.assertEqual(copmanager.getCopNumber(rt), Label.make(2,constant.PERPEN_SYM, 0,0,0,0))
     def test_example4_3(self):
-        
+        rt = RootedTree.load(0, "example4_3.txt")
+        self.assertEqual(copmanager.getCopNumber(rt), Label.make(2, constant.PERPEN_SYM, 1,0,0,0))
+    def test_example4_4(self):
+        rt = RootedTree.load(5, "example4_3.txt")
+        self.assertEqual(copmanager.getCopNumber(rt), Label.make(2, constant.PERPEN_SYM, 0,0,1,0))
+
 
 if __name__ == "__main__":
     unittest.main()

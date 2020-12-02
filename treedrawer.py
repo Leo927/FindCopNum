@@ -16,8 +16,8 @@ def drawGraph(graph:nx.classes.graph.Graph,
     if root!= None:
         digraph = nx.bfs_tree(graph,root)
     #adjust the figure size based on the number of nodes
-    plt.figure(num = title, figsize=(max(10,len(graph)/5),max(5,len(graph)/10)))
-    
+    plt.figure(num = title, figsize=(max(10,len(graph)/5) + 10,max(5,len(graph)/10)))
+    plt.margins(0.1,0.2)
     #use pygraphviz to get layout
     pos = graphviz_layout(digraph, prog='dot')
 
@@ -43,9 +43,9 @@ def drawRootedTree(rooted_tree, showLabel=False, title=None, savePath= None, sho
 def __drawNodeAttr(G, pos, attr):
     if attr == None:
         return
-    labelPos = __offsetPos(pos, 0, 30)
+    labelPos = __offsetPos(pos, 0, 20)
     node_labels = nx.get_node_attributes(G,attr)
-    nx.draw_networkx_labels(G, labelPos, labels = node_labels, font_size=6, font_color='r')
+    nx.draw_networkx_labels(G, labelPos, labels = node_labels, font_size=5, font_color='r')
     
     
 def __offsetPos(pos, dX, dY):
@@ -53,7 +53,3 @@ def __offsetPos(pos, dX, dY):
     for key,value in pos.items():
         newPos[key] = (value[0]+dX, value[1]+dY)
     return newPos
-
-
-
-    

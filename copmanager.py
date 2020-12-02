@@ -432,6 +432,10 @@ def findAttributeByKey(key, SVs:list):
 def compute_label(rt, u):
     '''rt = T1
     return T1u[u]'''
+    if (len(rt.descendant(u))==0):
+        rt.labels[u] = Label.noChild()
+        return rt.labels[u]
+
     logger.debug("start")
     k = c1Star(subForest(rt, u))
     logger.debug(f'k = {k}')
@@ -453,64 +457,64 @@ def compute_label(rt, u):
     if numKWb > 1:
         rt.labels[u] = Label.make(k+1, constant.PERPEN_SYM)
     # 3
-    if numKWb == 1 and numKPb >= 1:
+    elif numKWb == 1 and numKPb >= 1:
         rt.labels[u] = Label.make(k+1, constant.PERPEN_SYM, 0, 0, 0, 0)
 
     # 5
-    if (numKWb == 1 and
+    elif (numKWb == 1 and
         numKPb == 0 and
             numKC >= 2):
         # 6
         if hkW == 2:
             rt.labels[u] = Label.make(k+1, constant.PERPEN_SYM, 0, 0, 0, 0)
         # 8
-        if (hkW == 1 and
+        elif (hkW == 1 and
                 hk >= 1):
             rt.labels[u] = Label.make(k+1, constant.PERPEN_SYM, 0, 0, 0, 0)
         # 10
-        if (hkW == 1 and
+        elif (hkW == 1 and
                 hk == 0):
             rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 1, 2, 0, 0)
         # 12
-        if (hkW == 0 and
+        elif (hkW == 0 and
                 hk == 2):
             rt.labels[u] = Label.make(k + 1, constant.PERPEN_SYM, 0, 0, 0, 0)
         # 14
-        if (hkW == 0 and
+        elif (hkW == 0 and
                 hk <= 1):
             rt.labels[u] = Label.make(k + 1, constant.PERPEN_SYM, 1, 1, 0, 0)
     # 16
-    if numKWb == 1 and numKC == 1:
+    elif numKWb == 1 and numKC == 1:
         # 17
         if hkW == 2:
             rt.labels[u] = Label.make(k, u)
         # 19
-        if hkW == 1:
+        elif hkW == 1:
             rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 1, 2, 0, 0)
         # 21
-        if hkW == 0:
+        elif hkW == 0:
             rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 1, 1, 0, 0)
     # 23
-    if numKWb == 0:
+    elif numKWb == 0:
         # 24
         if numKPb >= 3:
             rt.labels[u] = Label.make(k+1, constant.PERPEN_SYM)
         # 26
-        if numKPb == 2:
+        elif numKPb == 2:
             rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 1, 0, 0, 0)
         # 28
-        if numKPb == 1:
+        elif numKPb == 1:
             rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 0, 0, 1, 0)
         # 30
-        if numKPb == 0:
+        elif numKPb == 0:
             # 31
             if hk == 2:
                 rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 0, 0, 1, 0)
             # 33
-            if hk == 1:
+            elif hk == 1:
                 rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 0, 0, 0, 2)
             # 35
-            if hk == 0:
+            elif hk == 0:
                 rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 0, 0, 0, 1)
     if rt.labels[u] == None:
         raise Exception("nothing is changed from compute-label")

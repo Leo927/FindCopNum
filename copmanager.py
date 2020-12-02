@@ -231,6 +231,7 @@ def maxInitialCounter(rt, v, k):
 def maxWeaklyCounter(rt, v, k):
     '''Definiton 2.6
     h^k_w(T^[u] -u)) = max{J^k_w(vj) for vj in v.children}'''
+    #BUG - no children is given
     logger.debug(f'maxWeaklyCounter(rt={rt}, v={v}, k={k})')
     logger.debug(f'descendant of v = {descendant(rt, v)}')
     children = descendant(rt, v)
@@ -286,7 +287,7 @@ def getNextLabel(rt, revNodes):
     logger.debug(f'k* = {largestRepeatedKey}')
     if(largestRepeatedKey == None):
         rt.labels[u] = copy.deepcopy(LT1u)
-        rt.labels[u].sv = rt.labels[u].sv + L[0:-1]
+        rt.labels[u].sv = L[0:-1] + rt.labels[u].sv
         return rt.labels[u]
 
     # 10
@@ -307,10 +308,11 @@ def findT1(rt, u):
     #TODO - test
     logger.debug(f'findT1({rt.tree.nodes}, {u}')
     T = rt.subTree(u)
-    logger.debug(f"rt is {rt.tree.nodes}\nT is {T.tree.nodes}")
+    logger.debug(f"rt is {rt}\nT is {T}")
     children = descendant(T, u)
     logger.debug(f'children of u = {children}')
     I_perpen, Ib = splitContainPerp(rt, children)
+    logger.debug(f'I_perpen = {I_perpen}, labels for I_perpen = {[rt.labels[child] for child in I_perpen]}')
     T1 = copy.deepcopy(T)
     nodes_to_remove = []
     for child in Ib:
@@ -321,8 +323,8 @@ def findT1(rt, u):
             nodes_to_remove.append(rt.labels[child][-2].attribute)
     logger.debug(f'nodes to remove{nodes_to_remove}')
     T1 = T1.trimTreeFromNode(*nodes_to_remove)
-    T1.labels = dict((node, rt.labels[node].lastSix())
-                     for node in rt.labels if rt.labels[node] != None)
+    T1.labels = dict((node, rt.labels[node].lastSix() if rt.labels[node] != None else None)
+                     for node in rt.labels )
     return T1
 
 
@@ -410,17 +412,19 @@ def keyRepeated(L):
 
 
 def findX(L, K):
-    X = Label()
-    X.ind = [0, 0, 0, 0]
-    # -1 to compensate difference of 0 base and 1 base. now we are 0 based
-    h = len(K) - 1
-    for idx, k_i in enumerate(K):
-        if idx == h:
-            X.append(k_i, constant.PERPEN_SYM)
-        else:
-            x_i = next(sv.attribute for sv in L if sv.key == k_i)
-            X.append(k_i, x_i)
+    X = Label.make(K[0], findAttributeByKey(K[0],L))
+    h = len(K)
+    
+    for index in range(2,h):
+        X.append(K[index-1], findAttributeByKey(K[index-1], L))
+    X.append(K[h-1], constant.PERPEN_SYM)
     return X
+
+def findAttributeByKey(key, SVs:list):
+    attr = next((sv.attribute for sv in SVs if sv.key == key), None)
+    if attr == None:
+        raise Exception(f'SVs exhausted,key = {key} in {SVs}')
+    return attr
 
 
 def compute_label(rt, u):
@@ -529,6 +533,7 @@ def trimTreeFromNode(rt, *arg):
         tempTree.tree.remove_nodes_from(nodesToRemove)
     return tempTree
 
+logger.setLevel(logging.DEBUG)
 
 if __name__ == "__main__":
     rt = RootedTree.load(0, "example4_5.txt")

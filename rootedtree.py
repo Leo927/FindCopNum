@@ -52,16 +52,18 @@ class RootedTree:
 
     def subTree(self, v1):
         '''return a subtree rooted at v1'''
+        #BUG - keyERROR ⊥
+        print(f'v1 = {v1}')
         return RootedTree(nx.dfs_tree(self.directed, v1), v1, self.labels)
     
     @property
     def nodes(self):
         return self.tree.nodes
 
-    def save(self):
+    def save(self, path = constant.treeFilePath):
         '''Save the tree to a .txt file'''
         # convert to json and
-        nx.write_adjlist(self.directed, constant.treeFilePath)
+        nx.write_adjlist(self.directed, path)
 
     def add_rand_weight(self):
         '''Add randome weight between 1 and n/10 for every node in a RootedTree'''

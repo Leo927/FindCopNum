@@ -417,8 +417,8 @@ def findX(L, K):
     X.ind = [0,0,0,0]
     h = len(K)
     
-    for index in range(0,h-2):
-        X.append(K[index], findAttributeByKey(K[index], L))
+    for index in range(1,h):
+        X.append(K[index - 1], findAttributeByKey(K[index - 1], L))
     X.append(K[h-1], constant.PERPEN_SYM)
     return X
 

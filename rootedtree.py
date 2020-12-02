@@ -14,7 +14,7 @@ class RootedTree:
     '''represents a rooted tree
         tree is networkx.Graph()'''
 
-    def __init__(self, tree, root, labels:dict = None):
+    def __init__(self, tree, root, labels: dict = None):
         self.tree = tree
         self.root = root
         self.attr = 'label'
@@ -52,15 +52,13 @@ class RootedTree:
 
     def subTree(self, v1):
         '''return a subtree rooted at v1'''
-        #BUG - keyERROR ⊥
-        print(f'v1 = {v1}')
         return RootedTree(nx.dfs_tree(self.directed, v1), v1, self.labels)
-    
+
     @property
     def nodes(self):
         return self.tree.nodes
 
-    def save(self, path = constant.treeFilePath):
+    def save(self, path=constant.treeFilePath):
         '''Save the tree to a .txt file'''
         # convert to json and
         nx.write_adjlist(self.directed, path)
@@ -109,22 +107,21 @@ class RootedTree:
                         attribute[cNode] = random.randint(
                             lowerBound, upperBound)
         nx.set_node_attributes(self.tree, attribute, "weight")
+
     def reverseList(self):
         reversedList = []
         __reverseListRecur(self.directed, self.root, reversedList)
         return reversedList
 
-        
     def descendant(self, node, distance=1):
         '''return descendant within distance(default = 1)
         does not include node it self'''
-        pairs = dict(nx.bfs_successors(self.directed, node, depth_limit=distance))
+        pairs = dict(nx.bfs_successors(
+            self.directed, node, depth_limit=distance))
         children = []
         for key in pairs:
             children = pairs[key] + children
         return children
-
-    
 
     def trimTreeFromNode(self, *arg):
         '''return a copy of the trimmed rooted tree'''
@@ -143,13 +140,7 @@ class RootedTree:
         return [self.subTree(child) for child in children]
 
 
-
-
-
-
-
-
-def __reverseListRecur( tree, root, output):
+def __reverseListRecur(tree, root, output):
     children = dict(nx.bfs_successors(tree, root, 1))[root]
     for child in children:
         __reverseListRecur(tree, child, output)

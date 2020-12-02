@@ -438,7 +438,6 @@ def compute_label(rt, u):
 
     logger.debug("start")
     k = c1Star(subForest(rt, u))
-    logger.debug(f'k = {k}')
     # ^k_wb
     numKWb = numKWeakBranChild(rt, u, k)
     # ^k_pb
@@ -451,14 +450,16 @@ def compute_label(rt, u):
     hk = maxInitialCounter(rt, u, k)
 
     logger.debug(
-        f"numKWb = {numKWb}, numKPb = {numKPb}, numKC ={numKC}, hkW = {hkW}, hk={hk}")
+        f"u = {u}, k = {k}, numKWb = {numKWb}, numKPb = {numKPb}, numKC ={numKC}, hkW = {hkW}, hk={hk}")
 
     # 1
     if numKWb > 1:
         rt.labels[u] = Label.make(k+1, constant.PERPEN_SYM)
+        logger.debug("#1 is triggered")
     # 3
     elif numKWb == 1 and numKPb >= 1:
         rt.labels[u] = Label.make(k+1, constant.PERPEN_SYM, 0, 0, 0, 0)
+        logger.debug("#3 is triggered")
 
     # 5
     elif (numKWb == 1 and
@@ -467,55 +468,69 @@ def compute_label(rt, u):
         # 6
         if hkW == 2:
             rt.labels[u] = Label.make(k+1, constant.PERPEN_SYM, 0, 0, 0, 0)
+            logger.debug("#6 is triggered")
         # 8
         elif (hkW == 1 and
                 hk >= 1):
             rt.labels[u] = Label.make(k+1, constant.PERPEN_SYM, 0, 0, 0, 0)
+            logger.debug("#8 is triggered")
         # 10
         elif (hkW == 1 and
                 hk == 0):
             rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 1, 2, 0, 0)
+            logger.debug("#10 is triggered")
         # 12
         elif (hkW == 0 and
                 hk == 2):
             rt.labels[u] = Label.make(k + 1, constant.PERPEN_SYM, 0, 0, 0, 0)
+            logger.debug("#12 is triggered")
         # 14
         elif (hkW == 0 and
                 hk <= 1):
-            rt.labels[u] = Label.make(k + 1, constant.PERPEN_SYM, 1, 1, 0, 0)
+            rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 1, 1, 0, 0)
+            logger.debug("#14 is triggered")
     # 16
     elif numKWb == 1 and numKC == 1:
         # 17
         if hkW == 2:
             rt.labels[u] = Label.make(k, u)
+            logger.debug("#17 is triggered")
         # 19
         elif hkW == 1:
             rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 1, 2, 0, 0)
+            logger.debug("#19 is triggered")
         # 21
         elif hkW == 0:
             rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 1, 1, 0, 0)
+            logger.debug("#21 is triggered")
     # 23
     elif numKWb == 0:
         # 24
         if numKPb >= 3:
             rt.labels[u] = Label.make(k+1, constant.PERPEN_SYM)
+            logger.debug("#24 is triggered")
         # 26
         elif numKPb == 2:
             rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 1, 0, 0, 0)
+            logger.debug("#26 is triggered")
         # 28
         elif numKPb == 1:
             rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 0, 0, 1, 0)
+            logger.debug("#28 is triggered")
         # 30
         elif numKPb == 0:
             # 31
             if hk == 2:
                 rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 0, 0, 1, 0)
+                logger.debug("#31 is triggered")
             # 33
             elif hk == 1:
                 rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 0, 0, 0, 2)
+                logger.debug("#33 is triggered")
             # 35
             elif hk == 0:
                 rt.labels[u] = Label.make(k, constant.PERPEN_SYM, 0, 0, 0, 1)
+                logger.debug("#35 is triggered")
     if rt.labels[u] == None:
         raise Exception("nothing is changed from compute-label")
     return rt.labels[u]
@@ -542,7 +557,7 @@ def trimTreeFromNode(rt, *arg):
 logger.setLevel(logging.DEBUG)
 
 if __name__ == "__main__":
-    rt = RootedTree.load(4, "experiment/tree_30_adjlist.txt")
+    rt = RootedTree.load(10)
     print(getCopNumber(rt))
     treedrawer.drawRootedTree(rt, True)
     

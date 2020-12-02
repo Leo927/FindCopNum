@@ -34,10 +34,10 @@ def drawGraph(graph:nx.classes.graph.Graph,
         plt.show()
         
         
-def drawRootedTree(rooted_tree, showLabel=False, title=None):
+def drawRootedTree(rooted_tree, showLabel=False, title=None, savePath= None, show = True):
     if showLabel:
         nx.set_node_attributes(rooted_tree.tree, rooted_tree.labels, 'label')
-    drawGraph(rooted_tree.tree,root=rooted_tree.root, nodeAttr=rooted_tree.attr, title=title)
+    drawGraph(rooted_tree.tree,savePath=savePath, root=rooted_tree.root, nodeAttr=rooted_tree.attr, title=title, show=show)
     
     
 def __drawNodeAttr(G, pos, attr):

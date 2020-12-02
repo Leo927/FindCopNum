@@ -32,6 +32,15 @@ class LabelTest(unittest.TestCase):
         rt = RootedTree(nx.Graph(), 0, labels)
         self.assertEqual(copmanager.nextUnlabled(rt, nodes), 3)
 
+    def test_findAttrByKey(self):
+        SVs = [SV(1,constant.PERPEN_SYM), SV(2,3), SV(3,4), SV(3,5)]
+        self.assertEqual(copmanager.findAttributeByKey(2, SVs), 3)
+
+    def test_findX(self):
+        K = [9, 8, 6]
+        L = [SV(9, 1), SV(8,3), SV(6, 4), SV(4, 9), SV(4,constant.PERPEN_SYM)]
+        self.assertEqual(copmanager.findX(L,K), Label.make(9, 1).append(8,3).append(6,constant.PERPEN_SYM))
+
     # def test_split_contain_perpen(self):
     #     Ib = [4, 2, 1]
     #     I_perpen = [0, 3]

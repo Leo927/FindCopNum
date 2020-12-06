@@ -137,9 +137,9 @@ class ExampleTest(unittest.TestCase):
         rt.labels = {0:None, 1: Label.make(4,constant.PERPEN_SYM, 0,0,1,0), 2: Label.make(4,constant.PERPEN_SYM, 0,0,1,0),
                         3: Label.make(5,x1, 0,0,0,2).append(2,constant.PERPEN_SYM), 4:Label.make(8,x2, 0,0,0,0).append(4,4),
                         5: Label.make(6,x3, 0,0,0,0).append(2,5),
-                        11:Label.make(5,constant.PERPEN_SYM),
-                        12:Label.make(8, constant.PERPEN_SYM),
-                        13: Label.make(6, constant.PERPEN_SYM)}
+                        11:Label.make(5, 11),
+                        12:Label.make(8, 12),
+                        13: Label.make(6, 13)}
         self.assertEqual(copmanager.getCopNumber(rt), Label.make(8,x2).append(7, constant.PERPEN_SYM))
 
 

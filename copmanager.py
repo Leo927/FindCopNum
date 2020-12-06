@@ -19,22 +19,22 @@ from label import Label, SV
 
 logger = logging.getLogger("copmanager")
 
-# create console handler and set level to debug
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-
-# create formatter
+logfile = logging.FileHandler('log.txt')
+logfile.setLevel(logging.WARNING)
 formatter = logging.Formatter(
     '%(asctime)s - %(name)s - %(funcName)s line %(lineno)d - %(levelname)s - %(message)s')
+logfile.setFormatter(formatter)
 
-# add formatter to ch
+ch = logging.StreamHandler()
+ch.setLevel(logging.WARNING)
 ch.setFormatter(formatter)
 
-# add ch to logger
+logger.addHandler(logfile)
 logger.addHandler(ch)
 
 
 def reverseList(rt):
+    logger.warning('Deprecated, use the one from RootedTre instead.')
     reversedList = []
     __reverseListRecur(rt.directed, rt.root, reversedList)
     return reversedList
@@ -48,9 +48,9 @@ def __reverseListRecur(tree, root, output):
 
 
 def isKPreBranching(rt, node, k):
-    #TODO - test
     if rt.labels[node] != None:
         return bool(rt.labels[node].prebranInd) and rt.labels[node].value == k
+
     logger.warning("node is not labeled")
     joined = joinByU(rt)
     return (c1Star(subForest(rt, node, 2)) == k and
@@ -58,9 +58,9 @@ def isKPreBranching(rt, node, k):
 
 
 def isKWeaklyBranching(rt, node, k):
-    #TODO - test
     if rt.labels[node] != None:
         return bool(rt.labels[node].weakBranInd) and rt.labels[node].value == k
+    
     logger.warning("node is not labeled")
     forests = [subForest(rt, node, 0),
                subForest(rt, node, 1),
@@ -76,7 +76,6 @@ def isKWeaklyBranching(rt, node, k):
 
 
 def isKBranching(rt, node, k):
-    #TODO - test
     right = True
     right &= (c1Star(subForest(rt, node, 2)) == k)
     right &= (sum(isKWeaklyBranching(rooted_tree, rooted_tree.root, k)
@@ -87,7 +86,9 @@ def isKBranching(rt, node, k):
 
 
 def joinByU(rt):
-
+    '''Definition 2.1. Construct a new RootedTree obtained
+    from two copies of rt[v] by connecting each root v to a new root u.
+    Inherits the right label. '''
     nx.set_node_attributes(rt.tree, rt.labels, 'label')
 
     joined = nx.join([(rt.tree, rt.root), (rt.tree, rt.root)])
@@ -102,6 +103,7 @@ def joinByU(rt):
 def subForest(rt, node, distance=0):
     '''Return a forst of RootedTree by finding subTree of children at
     the distance'''
+    logger.warning('Depricated. Use RootedTree.subForest() instead')
     distance += 1
     children = nx.descendants_at_distance(rt.directed, node, distance)
     subForests = [rt.subTree(child) for child in children]
@@ -110,7 +112,6 @@ def subForest(rt, node, distance=0):
 
 def c1(rt):
     '''find cop number of a rooted tree'''
-    #TODO - implement
     if rt.labels[rt.root] != None:
         return rt.labels[rt.root].value
     logger.warning("node is not labeled")
@@ -118,12 +119,10 @@ def c1(rt):
 
 
 def c1Star(forest):
-    #TODO - test
     result = 0
     for rt in forest:
         result = max(result, c1(rt))
     return result
-
 
 def descendant(rt, node, distance=1):
     '''return descendant within distance(default = 1)
@@ -136,20 +135,21 @@ def descendant(rt, node, distance=1):
 
 
 def kPreBranInd(rt, v, k):
-    #TODO - test
     return int(isKPreBranching(rt, v, k))
 
 
 def kWeakBranInd(rt, v, k):
-    #TODO - test
     return int(isKWeaklyBranching(rt, v, k))
 
 
 def kInitialCounter(rt, v, k):
     '''Definition 2.3 k-initial-counter'''
-    #TODO - tes
     if rt.labels[v] != None:
         return rt.labels[v].initialCounter and rt.labels[v].value == k
+    
+    # depreicated. In the algorithm this part is never used. 
+    # The only thing it should look at is the label. 
+    logger.warning("node is not labeled")
     if(kPreBranInd(rt, v, k) == 0 and c1Star(subForest(rt, v, 0)) == k-1):
         return 0
     elif (kPreBranInd(rt, v, k) == 0 and
@@ -166,9 +166,13 @@ def kInitialCounter(rt, v, k):
 
 def kWeakCounter(rt, v, k):
     '''Definition 2.3 find k-weakly-counter'''
-    #TODO - test
+
     if rt.labels[v] != None:
         return rt.labels[v].weaklyCounter and rt.labels[v].value == k
+    
+    # depreicated. In the algorithm this part is never used. 
+    # The only thing it should look at is the label. 
+    logger.warning("node is not labeled")
     if (kWeakBranInd(rt, v, k) == 1):
         k_pre_branching_child = [child for child in descendant(rt, v)
                                  if isKPreBranching(rt, child, k)]
@@ -199,22 +203,22 @@ def descOfType(rt, v, k, func):
 
 def numKPreBranChild(rt, v, k):
     '''Definiton 2.6 return the number of descendants that are k-pre-branching vertex
-    #^k_pb(T^[u] - u)'''
-    #TODO - test
+    #^k_pb(T^[u] - u)
+    Find the number of k-prebranching children of v'''    
     return len(descOfType(rt, v, k, isKPreBranching))
 
 
 def numKWeakBranChild(rt, v, k):
     '''Definition 2.6 return the number of descendents 
-    #^k_wb(T^[u] - u)'''
-    #TODO - test
+    #^k_wb(T^[u] - u).
+    Find the number of k-weakly-branching children of v'''
     return len(descOfType(rt, v, k, isKWeaklyBranching))
 
 
 def numKC1Child(rt, v, k):
     '''Definiton 2.6
-    #_c^k(T^[u] - u) = |{j if c1(T^[vj]) =k for vj in u.children'''
-    #TODO - test
+    #_c^k(T^[u] - u) = |{j if c1(T^[vj]) =k for vj in u.children.
+    # Find the number of children with c1 == k'''
     return len(descOfType(rt, v, k, lambda _rt, _vj, _k: c1(_rt.subTree(_vj)) == _k))
 
 
@@ -231,7 +235,6 @@ def maxInitialCounter(rt, v, k):
 def maxWeaklyCounter(rt, v, k):
     '''Definiton 2.6
     h^k_w(T^[u] -u)) = max{J^k_w(vj) for vj in v.children}'''
-    # BUG - no children is given
     logger.debug(f'maxWeaklyCounter(rt={rt}, v={v}, k={k})')
     logger.debug(f'descendant of v = {descendant(rt, v)}')
     children = descendant(rt, v)
@@ -251,7 +254,7 @@ def getCopNumber(rt: RootedTree):
         return rt.labels[rt.root]
     logger.debug(f'rt = {rt}')
     # 2
-    revNodes = reverseList(rt)
+    revNodes = rt.reverseList()
     if rt.labels == None:
         rt.labels = dict((node, Label.noChild() if len(descendant(rt, node)) == 0
                           else None) for node in revNodes)
@@ -264,7 +267,7 @@ def getCopNumber(rt: RootedTree):
 
 
 def getNextLabel(rt, revNodes):
-    # get the first unlabeled node
+    '''Calculates the label of the next unlabled node.'''
     u = nextUnlabled(rt, revNodes)
     logger.debug(f'u = {u}')
     children = rt.descendant(u)
@@ -306,7 +309,7 @@ def getNextLabel(rt, revNodes):
 
 
 def findT1(rt, u):
-    #TODO - test
+    '''Algorithm 1 step 5'''
     logger.debug(f'findT1({rt.tree.nodes}, {u}')
     T = rt.subTree(u)
     logger.debug(f"rt is {rt}\nT is {T}")
@@ -415,6 +418,7 @@ def keyRepeated(L):
 
 
 def findX(L, K):
+    '''Algorithm 1 step 11'''
     X = Label()
     X.ind = [0, 0, 0, 0]
     h = len(K)
@@ -426,6 +430,7 @@ def findX(L, K):
 
 
 def findAttributeByKey(key, SVs: list):
+    #TODO - For future improvement, Change SVs to a dictionary. 
     attr = next((sv.attribute for sv in SVs if sv.key == key), None)
     if attr == None:
         raise Exception(f'SVs exhausted,key = {key} in {SVs}')
@@ -549,8 +554,8 @@ def kBranchingDescendent(rt, v, k):
 
 
 def trimTreeFromNode(rt, *arg):
+    logger.warning('Deprecated, use the one from RootedTre instead.')
     '''return a copy of the trimmed rooted tree'''
-    #TODO - test
     tempTree = copy.deepcopy(rt)
     for v in arg:
         nodesToRemove = nx.dfs_tree(rt.directed, v).nodes
@@ -560,7 +565,7 @@ def trimTreeFromNode(rt, *arg):
 
 if __name__ == "__main__":
     logger.setLevel(logging.DEBUG)
-    rt = RootedTree.load(10)
+    rt = RootedTree.load(0, 'example4_1.txt')
     print(getCopNumber(rt))
     treedrawer.drawRootedTree(rt, True)
 

@@ -110,7 +110,7 @@ class RootedTree:
 
     def reverseList(self):
         reversedList = []
-        __reverseListRecur(self.directed, self.root, reversedList)
+        RootedTree.__reverseListRecur(self.directed, self.root, reversedList)
         return reversedList
 
     def descendant(self, node, distance=1):
@@ -139,9 +139,9 @@ class RootedTree:
         children = nx.descendants_at_distance(self.directed, node, distance)
         return [self.subTree(child) for child in children]
 
-
-def __reverseListRecur(tree, root, output):
-    children = dict(nx.bfs_successors(tree, root, 1))[root]
-    for child in children:
-        __reverseListRecur(tree, child, output)
-    output.append(root)
+    @staticmethod
+    def __reverseListRecur(tree, root, output):
+        children = dict(nx.bfs_successors(tree, root, 1))[root]
+        for child in children:
+            RootedTree.__reverseListRecur(tree, child, output)
+        output.append(root)

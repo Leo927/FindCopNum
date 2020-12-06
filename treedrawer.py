@@ -32,7 +32,7 @@ def drawGraph(graph:nx.classes.graph.Graph,
         #mng = plt.get_current_fig_manager()
         #mng.window.state('zoomed')
         plt.show()
-        
+    plt.close()    
         
 def drawRootedTree(rooted_tree, showLabel=False, title=None, savePath= None, show = True):
     if showLabel:
